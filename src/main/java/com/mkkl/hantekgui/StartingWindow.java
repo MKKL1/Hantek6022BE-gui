@@ -65,7 +65,6 @@ public class StartingWindow extends Application {
     }
 
     public void onStartButtonClicked(MouseEvent mouseEvent) {
-
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(MainWindow.class.getResource("hello-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 320, 240);

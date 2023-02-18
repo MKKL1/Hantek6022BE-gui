@@ -1,6 +1,11 @@
 package com.mkkl.hantekgui.protocol;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface OscilloscopeCommunication {
     //TODO exceptions
@@ -16,4 +21,11 @@ public interface OscilloscopeCommunication {
     void setProbeMultiplier(OscilloscopeChannel channel, int value);
     //TODO calibration
     //TODO creating data reader
+    void startCapture();
+    void stopCapture();
+    CompletableFuture<Void> asyncRead(short size, Consumer<byte[]> packetConsumer);
+    byte[] readSample(InputStream stream) throws IOException;
+    float formatRawData(OscilloscopeChannel channel, byte raw);
+    float[] formatChannelsData(byte[] raw);
+    void processPacket(byte[] data, Consumer<float[]> consumer);
 }

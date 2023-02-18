@@ -9,6 +9,7 @@ module com.mkkl.hantekgui.hantekgui {
     requires org.slf4j;
     requires hantekapi;
     requires usb.api;
+    requires org.apache.commons.lang3;
 
     opens com.mkkl.hantekgui to javafx.fxml;
     exports com.mkkl.hantekgui;
