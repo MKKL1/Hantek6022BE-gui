@@ -37,6 +37,10 @@ public class OscilloscopeDataReader implements Runnable{
             CompletableFuture<Void> completableFuture = scopeCommunication.asyncRead((short) 8192,
                     bytes -> listeners.forEach(x -> x.onDataPackedReceived(bytes)));
             completableFuture.thenAccept(v -> listeners.forEach(DataReaderListener::onDataCompleted));
+            completableFuture.exceptionally(throwable -> {
+                throwable.printStackTrace();
+                return null;
+            });
             completableFuture.join();
         }
     }
