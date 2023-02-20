@@ -41,8 +41,6 @@ public class DataProcessor implements Runnable, AutoCloseable {
     float[] copych2;
     private final int datapointCount = 10*1024;
 
-    long lastTimeStamp = 0;
-
     public DataProcessor(OscilloscopeSettings oscilloscopeSettings, OscilloscopeCommunication scopeCommunication, ScopeChart scopeChart) {
         this.scopeCommunication = scopeCommunication;
         this.scopeChart = scopeChart;
@@ -64,18 +62,18 @@ public class DataProcessor implements Runnable, AutoCloseable {
 
         scopeChart.getDatasets().addAll(dataSets);
 
-
+        //Calculate time for limited fps
+        int fpsLimit = 10;
+        long updateTime = (long) ((1/(double)fpsLimit)*1e9);
+        final long[] nextUpdate = {0};
         timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-
-                if(shouldUpdate) {
-                    double frameDuration = (now - lastTimeStamp) / 1e9;
-                    lastTimeStamp = now;
-                    System.out.println(1/frameDuration);
+                if(shouldUpdate && now > nextUpdate[0]) {
                     dataSets[0].set(xAxisPoints, copych1);
                     dataSets[1].set(xAxisPoints, copych2);
                     shouldUpdate = false;
+                    nextUpdate[0] = now + updateTime;
                 }
             }
         };
@@ -92,7 +90,7 @@ public class DataProcessor implements Runnable, AutoCloseable {
             e.printStackTrace();
         }
 
-        readingThread = new Thread(oscilloscopeDataReader);
+        readingThread = new Thread(oscilloscopeDataReader, "OscData reader");
         readingThread.start();
 
         while(!Thread.currentThread().isInterrupted()) {

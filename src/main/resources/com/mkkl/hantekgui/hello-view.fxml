@@ -5,10 +5,6 @@
 <?import javafx.scene.layout.VBox?>
 
 <?import javafx.scene.control.Button?>
-<?import de.gsi.chart.XYChart?>
-<?import de.gsi.chart.axes.spi.DefaultNumericAxis?>
-<?import de.gsi.chart.plugins.ParameterMeasurements?>
-<?import de.gsi.chart.renderer.spi.ErrorDataSetRenderer?>
 <?import com.mkkl.hantekgui.ScopeChart?>
 <VBox alignment="TOP_CENTER" spacing="10.0" xmlns:fx="http://javafx.com/fxml" fx:controller="com.mkkl.hantekgui.MainWindow">
     <padding>
