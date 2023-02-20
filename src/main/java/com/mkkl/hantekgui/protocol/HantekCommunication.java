@@ -12,6 +12,7 @@ import com.mkkl.hantekapi.constants.SampleRates;
 import com.mkkl.hantekapi.constants.VoltageRange;
 
 import javax.usb.UsbException;
+import javax.usb.UsbInterface;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -122,6 +123,11 @@ public class HantekCommunication implements OscilloscopeCommunication {
     }
 
     @Override
+    public UsbInterface getConnectedInterface() {
+        return oscilloscope.getScopeInterface().getUsbInterface();
+    }
+
+    @Override
     public void startCapture() {
         scopeDataReader.startCapture();
     }
@@ -172,6 +178,11 @@ public class HantekCommunication implements OscilloscopeCommunication {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public AdcInputStream getAdcInputStream(InputStream inputStream) {
+        return new AdcInputStream(inputStream, channelManager, packetSize);
     }
 
     public Oscilloscope getOscilloscope() {

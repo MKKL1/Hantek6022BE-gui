@@ -1,5 +1,8 @@
 package com.mkkl.hantekgui.protocol;
 
+import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
+
+import javax.usb.UsbInterface;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,8 +22,8 @@ public interface OscilloscopeCommunication {
     void setSampleRate(OscilloscopeSampleRate oscilloscopeSampleRate);
     void setVoltageRange(OscilloscopeChannel channel, OscilloscopeVoltRanges voltRanges);
     void setProbeMultiplier(OscilloscopeChannel channel, int value);
+    UsbInterface getConnectedInterface();
     //TODO calibration
-    //TODO creating data reader
     void startCapture();
     void stopCapture();
     CompletableFuture<Void> asyncRead(short size, Consumer<byte[]> packetConsumer);
@@ -28,4 +31,5 @@ public interface OscilloscopeCommunication {
     float formatRawData(OscilloscopeChannel channel, byte raw);
     float[] formatChannelsData(byte[] raw);
     void processPacket(byte[] data, Consumer<float[]> consumer);
+    AdcInputStream getAdcInputStream(InputStream inputStream);
 }

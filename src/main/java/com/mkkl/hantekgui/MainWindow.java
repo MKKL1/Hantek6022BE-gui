@@ -26,6 +26,8 @@ public class MainWindow {
         oscilloscopeSettings.setCurrentSampleRate(sampleRate);
         scopeCommunication.setSampleRate(sampleRate);
         DataProcessor dataProcessor = new DataProcessor(oscilloscopeSettings, scopeCommunication, scopeChart);
+        Thread thread = new Thread(dataProcessor);
+        thread.start();
     }
 
     @FXML
