@@ -3,6 +3,7 @@ package com.mkkl.hantekgui;
 import com.mkkl.hantekgui.protocol.DataReaderListener;
 import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 
+import javax.usb.UsbException;
 import java.io.IOException;
 import java.io.PipedOutputStream;
 import java.util.Collection;
@@ -13,7 +14,7 @@ public class OscilloscopeDataReader implements Runnable{
     private final OscilloscopeCommunication scopeCommunication;
     private final Collection<DataReaderListener> listeners = new HashSet<>();
     private final PipedOutputStream pipedOutputStream = new PipedOutputStream();
-    private final int maxPacketSize = 8192;
+    private final int maxPacketSize = 8192*2;
 
     public OscilloscopeDataReader(OscilloscopeCommunication scopeCommunication) {
         this.scopeCommunication = scopeCommunication;
@@ -38,22 +39,12 @@ public class OscilloscopeDataReader implements Runnable{
     public void run() {
         scopeCommunication.startCapture();
         while(capture) {
-            CompletableFuture<Void> completableFuture = scopeCommunication.asyncRead((short) maxPacketSize,
-                    bytes -> {
-                        listeners.forEach(x -> x.onDataPackedReceived(bytes));
-                        try {
-                            pipedOutputStream.write(bytes);
-                        } catch (IOException e) {
-                            //TODO handle exception
-                            e.printStackTrace();
-                        }
-                    });
-            completableFuture.thenAccept(v -> listeners.forEach(DataReaderListener::onDataCompleted));
-            completableFuture.exceptionally(throwable -> {
-                throwable.printStackTrace();
-                return null;
-            });
-            completableFuture.join();
+            try {
+                pipedOutputStream.write(scopeCommunication.syncRead((short) maxPacketSize));
+            } catch (IOException | UsbException e) {
+                //TODO handle exceptions
+                e.printStackTrace();
+            }
         }
     }
 

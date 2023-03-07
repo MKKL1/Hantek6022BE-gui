@@ -4,7 +4,6 @@ import com.mkkl.hantekapi.Oscilloscope;
 import com.mkkl.hantekapi.OscilloscopeManager;
 import com.mkkl.hantekapi.channel.ActiveChannels;
 import com.mkkl.hantekapi.channel.ChannelManager;
-import com.mkkl.hantekapi.channel.Channels;
 import com.mkkl.hantekapi.channel.ScopeChannel;
 import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
 import com.mkkl.hantekapi.communication.adcdata.ScopeDataReader;
@@ -140,6 +139,11 @@ public class HantekCommunication implements OscilloscopeCommunication {
     @Override
     public CompletableFuture<Void> asyncRead(short size, Consumer<byte[]> packetConsumer) {
         return scopeDataReader.asyncRead(size, packetConsumer);
+    }
+
+    @Override
+    public byte[] syncRead(short size) throws IOException, UsbException {
+        return scopeDataReader.syncRead(size);
     }
 
     @Override

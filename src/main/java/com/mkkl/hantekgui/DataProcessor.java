@@ -15,11 +15,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.function.Consumer;
 
 public class DataProcessor implements Runnable, AutoCloseable {
     private ScopeChart scopeChart;
@@ -107,7 +103,7 @@ public class DataProcessor implements Runnable, AutoCloseable {
                     samples[1].clear();
                     currentSampleCount = 0;
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
