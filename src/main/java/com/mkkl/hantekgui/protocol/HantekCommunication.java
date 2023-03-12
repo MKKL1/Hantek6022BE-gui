@@ -21,8 +21,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+//Implementation of hantek communication protocol
+//Only class that should use hantek api library,
+// in other parts of the project interface should be used instead
 public class HantekCommunication implements OscilloscopeCommunication {
-
     private Oscilloscope oscilloscope;
     private final boolean[] channelsActive = new boolean[2];
     private ScopeChannel[] channels;
