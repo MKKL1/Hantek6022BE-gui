@@ -1,5 +1,6 @@
 package com.mkkl.hantekgui;
 
+import com.mkkl.hantekgui.capture.SamplesBatch;
 import com.mkkl.hantekgui.protocol.OscilloscopeChannel;
 import de.gsi.chart.XYChart;
 import de.gsi.chart.axes.spi.DefaultNumericAxis;
@@ -45,6 +46,4 @@ public class ScopeChart extends XYChart {
     public FloatDataSet getDataSetByChannelId(int channelid) {
         return channelDataSets[channelid];
     }
-
-    public
 }

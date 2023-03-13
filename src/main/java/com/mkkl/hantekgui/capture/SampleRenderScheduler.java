@@ -13,7 +13,7 @@ public class SampleRenderScheduler {
 
     long updateTime; //TODO on fps limit change, update this value
     AnimationTimer timer;
-    public SampleRenderScheduler(Consumer<SamplesBatch> samplesConsumer, Supplier<CompletableFuture<SamplesBatch>> samplesSupplier) {
+    public SampleRenderScheduler(Consumer<SamplesBatch> renderer, Supplier<CompletableFuture<SamplesBatch>> samplesSupplier) {
         updateTime = (long) ((1/(double) OscilloscopeSettings.getChartFpsLimit())*1e9);
 
         final long[] nextUpdate = {0};
@@ -21,7 +21,7 @@ public class SampleRenderScheduler {
             @Override
             public void handle(long now) {
                 if(shouldUpdate && now > nextUpdate[0]) {
-                    samplesConsumer.accept(samplesBatch);
+                    renderer.accept(samplesBatch);
                     shouldUpdate = false;
                     nextUpdate[0] = now + updateTime;
                     //Request next data frame

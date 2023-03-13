@@ -7,6 +7,8 @@ import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 public class ChartManager implements AutoCloseable{
     private final ScopeChart scopeChart;
     private CaptureMethod captureMethod;
+    private SampleRenderScheduler sampleRenderScheduler;
+    private ScopeDataRenderer scopeDataRenderer;
 //    private final OscilloscopeDataReader dataReader;
 //    private final Thread dataReaderThread;
 //    private final DataProcessor dataProcessor;
@@ -15,6 +17,9 @@ public class ChartManager implements AutoCloseable{
 
     private ChartManager(OscilloscopeCommunication scopeCommunication, ScopeChart scopeChart) {
         this.scopeChart = scopeChart;
+        this.scopeDataRenderer = new ScopeDataRenderer(scopeChart);
+        this.scopeDataRenderer.setXPointsDistance();
+        this.sampleRenderScheduler = new SampleRenderScheduler(samplesBatch -> {scopeChart.});
 //        dataReader = new OscilloscopeDataReader(scopeCommunication);
 //        dataProcessor = new DataProcessor(scopeCommunication, dataReader);
 //        dataProcessorThread = new Thread(dataProcessor, "Scope Data Processor");
