@@ -21,13 +21,11 @@ public class MainWindow {
 
     public void init(OscilloscopeCommunication scopeCommunication) throws IOException {
         this.scopeCommunication = scopeCommunication;
-        OscilloscopeSettings oscilloscopeSettings = new OscilloscopeSettings();
+        OscilloscopeSettings oscilloscopeSettings = OscilloscopeSettings.getInstance();
         OscilloscopeSampleRate sampleRate =  scopeCommunication.getAvailableSampleRates().stream().filter(x -> x.samplesPerSecond() == 100000).findFirst().orElseThrow();
         oscilloscopeSettings.setCurrentSampleRate(sampleRate);
         scopeCommunication.setSampleRate(sampleRate);
-        DataProcessor dataProcessor = new DataProcessor(oscilloscopeSettings, scopeCommunication, scopeChart);
-        Thread thread = new Thread(dataProcessor, "Data processor");
-        thread.start();
+        ChartManager chartManager = ChartManager.create(scopeCommunication, scopeChart);
     }
 
     @FXML

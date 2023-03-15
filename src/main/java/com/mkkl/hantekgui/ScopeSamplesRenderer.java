@@ -2,11 +2,11 @@ package com.mkkl.hantekgui;
 
 import com.mkkl.hantekgui.capture.SamplesBatch;
 
-public class ScopeDataRenderer {
+public class ScopeSamplesRenderer {
     private final ScopeChart scopeChart;
     private float[] xvalues;
 
-    public ScopeDataRenderer(ScopeChart scopeChart) {
+    public ScopeSamplesRenderer(ScopeChart scopeChart) {
         this.scopeChart = scopeChart;
     }
 

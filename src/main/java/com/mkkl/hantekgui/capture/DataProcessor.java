@@ -16,6 +16,7 @@ public class DataProcessor implements Runnable {
     }
 
     public DataProcessor(PipedOutputStream pipedOutputStream, OscilloscopeCommunication oscilloscopeCommunication) throws IOException {
+        this();
         connect(pipedOutputStream, oscilloscopeCommunication);
     }
 

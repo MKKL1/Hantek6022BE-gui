@@ -14,7 +14,7 @@ public class SampleRenderScheduler {
     long updateTime; //TODO on fps limit change, update this value
     AnimationTimer timer;
     public SampleRenderScheduler(Consumer<SamplesBatch> renderer, Supplier<CompletableFuture<SamplesBatch>> samplesSupplier) {
-        updateTime = (long) ((1/(double) OscilloscopeSettings.getChartFpsLimit())*1e9);
+        updateTime = (long) ((1/(double) OscilloscopeSettings.getInstance().getChartFpsLimit())*1e9);
 
         final long[] nextUpdate = {0};
         timer = new AnimationTimer() {

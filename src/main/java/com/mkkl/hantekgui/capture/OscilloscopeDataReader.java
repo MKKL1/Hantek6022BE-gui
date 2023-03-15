@@ -13,9 +13,8 @@ import java.util.concurrent.CompletableFuture;
 //Class used in separate thread to minimize gaps between readings
 public class OscilloscopeDataReader implements Runnable{
     private final OscilloscopeCommunication scopeCommunication;
-//    private final Collection<DataReaderListener> listeners = new HashSet<>(); TODO replace with different event handler
     private final PipedOutputStream pipedOutputStream = new PipedOutputStream();
-    private final int maxPacketSize = 8192*2;
+    private final int maxPacketSize = 8192*2;//TODO implement
     public boolean realTimeCapture = false;
 
     public OscilloscopeDataReader(OscilloscopeCommunication scopeCommunication) {
@@ -23,7 +22,6 @@ public class OscilloscopeDataReader implements Runnable{
 //        maxPacketSize = scopeCommunication.getConnectedInterface().getUsbEndpoint(0).getUsbEndpointDescriptor().wMaxPacketSize();
     }
 
-    //Used in real time capture
     public void pause() throws InterruptedException {
         wait();
     }
