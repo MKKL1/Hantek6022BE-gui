@@ -19,11 +19,12 @@ import java.util.List;
 public class ScopeChart extends XYChart {
     public static int MIN_PIXEL_DISTANCE = 2;
     private FloatDataSet[] channelDataSets;
+    ErrorDataSetRenderer errorDataSetRenderer = new ErrorDataSetRenderer();
     public ScopeChart() {
         super(new DefaultNumericAxis(), new DefaultNumericAxis());
         getAxes().forEach(axis -> axis.setAnimated(false));
         getPlugins().add(new Zoomer());
-        ErrorDataSetRenderer errorDataSetRenderer = new ErrorDataSetRenderer();
+
         errorDataSetRenderer.setErrorType(ErrorStyle.NONE);
         errorDataSetRenderer.setDrawMarker(false);
         errorDataSetRenderer.setDashSize(MIN_PIXEL_DISTANCE);
@@ -41,6 +42,7 @@ public class ScopeChart extends XYChart {
         for(OscilloscopeChannel channel : channels) {
             channelDataSets[channel.id()] = new FloatDataSet(channel.name());
         }
+        errorDataSetRenderer.getDatasets().addAll(channelDataSets);
     }
 
     public FloatDataSet getDataSetByChannelId(int channelid) {

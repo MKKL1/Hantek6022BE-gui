@@ -2,6 +2,8 @@ package com.mkkl.hantekgui;
 
 import com.mkkl.hantekgui.capture.SamplesBatch;
 
+import java.util.Arrays;
+
 public class ScopeSamplesRenderer {
     private final ScopeChart scopeChart;
     private float[] xvalues;
@@ -21,6 +23,6 @@ public class ScopeSamplesRenderer {
 
     public void renderSampleBatch(SamplesBatch samplesBatch) {
         scopeChart.getDataSetByChannelId(0).set(xvalues, samplesBatch.getCh1Data());
-        scopeChart.getDataSetByChannelId(0).set(xvalues, samplesBatch.getCh2Data());
+        scopeChart.getDataSetByChannelId(1).set(xvalues, samplesBatch.getCh2Data());
     }
 }

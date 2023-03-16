@@ -25,6 +25,7 @@ public class MainWindow {
         OscilloscopeSampleRate sampleRate =  scopeCommunication.getAvailableSampleRates().stream().filter(x -> x.samplesPerSecond() == 100000).findFirst().orElseThrow();
         oscilloscopeSettings.setCurrentSampleRate(sampleRate);
         scopeCommunication.setSampleRate(sampleRate);
+        scopeChart.setChannels(scopeCommunication.getChannels().stream().toList());
         ChartManager chartManager = ChartManager.create(scopeCommunication, scopeChart);
     }
 

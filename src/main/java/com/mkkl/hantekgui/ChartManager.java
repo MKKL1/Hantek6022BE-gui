@@ -41,6 +41,7 @@ public class ChartManager implements AutoCloseable{
 
         this.sampleRenderScheduler = new SampleRenderScheduler(scopeSamplesRenderer::renderSampleBatch,
                 () -> samplesCapture.requestSamples(oscilloscopeSettings.getSampleCountPerFrame()));
+        this.sampleRenderScheduler.start();
     }
 
     public CaptureMethods getCaptureMethod() {

@@ -15,9 +15,9 @@ public class ContinuousSampleCapture implements SamplesCapture{
             if(countToRead == 0) return;
             //This solution doesn't take into account situation where first batch could be larger than required size
             //TODO fix
+            countToRead -= samplesBatch.length;
             if(currentSample == null) currentSample = samplesBatch;
             else {
-                countToRead -= samplesBatch.length;
                 if(countToRead >= 0) currentSample.concatenate(samplesBatch);
                 else currentSample.concatenate(samplesBatch, samplesBatch.length+countToRead);
             }

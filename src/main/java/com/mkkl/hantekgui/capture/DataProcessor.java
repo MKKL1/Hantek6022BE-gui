@@ -12,7 +12,7 @@ public class DataProcessor implements Runnable {
     private AdcInputStream adcInputStream;
     private int sampleBatchSize = 2048;
     public DataProcessor() {
-
+        pipedInputStream = new PipedInputStream();
     }
 
     public DataProcessor(PipedOutputStream pipedOutputStream, OscilloscopeCommunication oscilloscopeCommunication) throws IOException {

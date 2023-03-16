@@ -10,12 +10,13 @@ import java.util.function.Supplier;
 public class SampleRenderScheduler {
     SamplesBatch samplesBatch;
     boolean shouldUpdate = false;
+    private final Supplier<CompletableFuture<SamplesBatch>> samplesSupplier;
 
     long updateTime; //TODO on fps limit change, update this value
     AnimationTimer timer;
     public SampleRenderScheduler(Consumer<SamplesBatch> renderer, Supplier<CompletableFuture<SamplesBatch>> samplesSupplier) {
+        this.samplesSupplier = samplesSupplier;
         updateTime = (long) ((1/(double) OscilloscopeSettings.getInstance().getChartFpsLimit())*1e9);
-
         final long[] nextUpdate = {0};
         timer = new AnimationTimer() {
             @Override
@@ -35,6 +36,11 @@ public class SampleRenderScheduler {
     }
 
     public void start() {
+        //Requesting first data frame
+        samplesSupplier.get().thenAccept(samples -> {
+            samplesBatch = samples;
+            shouldUpdate = true;
+        });
         timer.start();
     }
 
