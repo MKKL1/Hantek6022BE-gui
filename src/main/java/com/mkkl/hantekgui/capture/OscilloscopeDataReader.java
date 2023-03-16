@@ -1,4 +1,4 @@
-package com.mkkl.hantekgui;
+package com.mkkl.hantekgui.capture;
 
 import com.mkkl.hantekgui.protocol.DataReaderListener;
 import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
@@ -10,11 +10,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 
+//Class used in separate thread to minimize gaps between readings
 public class OscilloscopeDataReader implements Runnable{
     private final OscilloscopeCommunication scopeCommunication;
-    private final Collection<DataReaderListener> listeners = new HashSet<>();
     private final PipedOutputStream pipedOutputStream = new PipedOutputStream();
-    private final int maxPacketSize = 8192*2;
+    private final int maxPacketSize = 8192*2;//TODO implement
+    public boolean realTimeCapture = false;
 
     public OscilloscopeDataReader(OscilloscopeCommunication scopeCommunication) {
         this.scopeCommunication = scopeCommunication;
@@ -25,6 +26,7 @@ public class OscilloscopeDataReader implements Runnable{
         wait();
     }
 
+    //Resumes capture
     public void resume() {
         notify();
     }
@@ -47,11 +49,6 @@ public class OscilloscopeDataReader implements Runnable{
             }
         }
     }
-
-    public void addEventListener(DataReaderListener dataReaderEvent) {
-        listeners.add(dataReaderEvent);
-    }
-
     public PipedOutputStream getPipedOutputStream() {
         return pipedOutputStream;
     }

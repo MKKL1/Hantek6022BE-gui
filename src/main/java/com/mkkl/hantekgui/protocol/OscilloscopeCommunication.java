@@ -10,6 +10,9 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
+//Interface used to generalize oscilloscopes communication protocols
+//Right now it is only used to communicate with hantek devices
+//TODO cleanup
 public interface OscilloscopeCommunication {
     //TODO exceptions
     Collection<OscilloscopeDevice> getConnectedDevices() throws Exception;
