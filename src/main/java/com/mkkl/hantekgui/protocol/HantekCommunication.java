@@ -191,6 +191,11 @@ public class HantekCommunication implements OscilloscopeCommunication {
         return new AdcInputStream(inputStream, channelManager, packetSize);
     }
 
+    @Override
+    public short getPacketSize() {
+        return oscilloscope.getScopeInterface().getEndpoint().getMaxPacketSize();
+    }
+
     public Oscilloscope getOscilloscope() {
         return oscilloscope;
     }

@@ -17,4 +17,10 @@ module com.mkkl.hantekgui.hantekgui {
     opens com.mkkl.hantekgui.protocol to javafx.fxml;
     exports com.mkkl.hantekgui.capture;
     opens com.mkkl.hantekgui.capture to javafx.fxml;
+    exports com.mkkl.hantekgui.ui.chart;
+    opens com.mkkl.hantekgui.ui.chart to javafx.fxml;
+    exports com.mkkl.hantekgui.settings;
+    opens com.mkkl.hantekgui.settings to javafx.fxml;
+    exports com.mkkl.hantekgui.ui.chart.render;
+    opens com.mkkl.hantekgui.ui.chart.render to javafx.fxml;
 }

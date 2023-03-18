@@ -38,4 +38,5 @@ public interface OscilloscopeCommunication {
     float[] formatChannelsData(byte[] raw);
     void processPacket(byte[] data, Consumer<float[]> consumer);
     AdcInputStream getAdcInputStream(InputStream inputStream);
+    short getPacketSize();
 }

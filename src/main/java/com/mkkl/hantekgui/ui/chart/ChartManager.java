@@ -1,28 +1,31 @@
-package com.mkkl.hantekgui;
+package com.mkkl.hantekgui.ui.chart;
 
+import com.mkkl.hantekgui.protocol.OscilloscopeSampleRate;
+import com.mkkl.hantekgui.ui.chart.render.SampleRenderScheduler;
+import com.mkkl.hantekgui.ui.chart.render.SampleSupplier;
+import com.mkkl.hantekgui.ui.chart.render.SampleRenderer;
+import com.mkkl.hantekgui.settings.SettingsRegistry;
 import com.mkkl.hantekgui.capture.*;
 import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 public class ChartManager implements AutoCloseable{
     private final ScopeChart scopeChart;
     private SamplesCapture samplesCapture = new ContinuousSampleCapture();
     private CaptureMethods captureMethod = CaptureMethods.CONTINUOUS;
     private final SampleRenderScheduler sampleRenderScheduler;
-    private final ScopeSamplesRenderer scopeSamplesRenderer;
+    private final SampleRenderer sampleRenderer;
     private final DataProcessor dataProcessor;
     private final OscilloscopeDataReader oscilloscopeDataReader;
-
-    private OscilloscopeSettings oscilloscopeSettings;
+    private final SampleSupplier sampleSupplier;
+    private final OscilloscopeCommunication scopeCommunication;
 
     private static ChartManager instance;
 
     private ChartManager(OscilloscopeCommunication scopeCommunication, ScopeChart scopeChart) {
-        this.oscilloscopeSettings = OscilloscopeSettings.getInstance();
+        this.scopeCommunication = scopeCommunication;
         this.scopeChart = scopeChart;
         this.dataProcessor = new DataProcessor();
         this.oscilloscopeDataReader = new OscilloscopeDataReader(scopeCommunication);
@@ -35,13 +38,46 @@ public class ChartManager implements AutoCloseable{
         new Thread(dataProcessor).start();//TODO TEMPORARY SOLUTION
         new Thread(oscilloscopeDataReader).start();
 
-        this.scopeSamplesRenderer = new ScopeSamplesRenderer(scopeChart);
-        this.scopeSamplesRenderer.setXPointsDistance(oscilloscopeSettings.getSampleCountPerFrame(),
-                oscilloscopeSettings.getCurrentSampleRate().getTimeBetweenPoints());
-
-        this.sampleRenderScheduler = new SampleRenderScheduler(scopeSamplesRenderer::renderSampleBatch,
-                () -> samplesCapture.requestSamples(oscilloscopeSettings.getSampleCountPerFrame()));
+        this.sampleRenderer = new SampleRenderer(scopeChart);
+        this.sampleSupplier = new SampleSupplier(samplesCapture);
+        this.sampleRenderScheduler = new SampleRenderScheduler(sampleRenderer, sampleSupplier);
         this.sampleRenderScheduler.start();
+
+        registerSettingListeners();
+
+        refreshChart();
+    }
+
+    private void registerSettingListeners() {
+        SettingsRegistry.sampleCountPerFrame.addValueChangeListener((oldValue, newValue) -> {
+            refreshChart();
+        });
+
+        SettingsRegistry.currentSampleRate.addValueChangeListener((oldValue, newValue) -> {
+            System.out.println("New sample rate " + newValue.toString());
+            refreshChart();
+        });
+    }
+
+    public void refreshChart() {
+        this.sampleSupplier.updateSize();
+        this.sampleRenderer.setXPointsDistance(
+                SettingsRegistry.sampleCountPerFrame.getValue(),
+                SettingsRegistry.currentSampleRate.getValue().getTimeBetweenPoints());
+        this.sampleRenderScheduler.reset();
+    }
+
+    public void setTimeBase(float timeBase) {
+        int requiredSamplePerSec = (int) (SettingsRegistry.sampleCountPerFrame.getValue()/timeBase);
+        //Find best
+        for(OscilloscopeSampleRate oscilloscopeSampleRate : scopeCommunication.getAvailableSampleRates()) {
+            if (oscilloscopeSampleRate.samplesPerSecond() >= requiredSamplePerSec) {
+                scopeCommunication.stopCapture();
+                SettingsRegistry.currentSampleRate.setValue(oscilloscopeSampleRate);
+                scopeCommunication.startCapture();
+                break;
+            }
+        }
     }
 
     public CaptureMethods getCaptureMethod() {

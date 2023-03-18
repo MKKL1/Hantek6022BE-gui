@@ -34,4 +34,19 @@ public class SamplesBatch{
     public void concatenate(SamplesBatch samplesBatch2) {
         concatenate(samplesBatch2, samplesBatch2.length);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SamplesBatch that = (SamplesBatch) o;
+        return Arrays.equals(ch1Data, that.ch1Data) && Arrays.equals(ch2Data, that.ch2Data);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(ch1Data);
+        result = 31 * result + Arrays.hashCode(ch2Data);
+        return result;
+    }
 }

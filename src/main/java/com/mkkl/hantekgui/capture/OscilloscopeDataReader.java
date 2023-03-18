@@ -14,12 +14,13 @@ import java.util.concurrent.CompletableFuture;
 public class OscilloscopeDataReader implements Runnable{
     private final OscilloscopeCommunication scopeCommunication;
     private final PipedOutputStream pipedOutputStream = new PipedOutputStream();
-    private final int maxPacketSize = 8192*2;//TODO implement
+    private int maxPacketSize;
     public boolean realTimeCapture = false;
 
     public OscilloscopeDataReader(OscilloscopeCommunication scopeCommunication) {
         this.scopeCommunication = scopeCommunication;
-//        maxPacketSize = scopeCommunication.getConnectedInterface().getUsbEndpoint(0).getUsbEndpointDescriptor().wMaxPacketSize();
+        maxPacketSize = scopeCommunication.getPacketSize();
+        System.out.println("max packet size " + maxPacketSize);
     }
 
     public void pause() throws InterruptedException {

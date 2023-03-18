@@ -10,7 +10,7 @@ import java.io.PipedOutputStream;
 public class DataProcessor implements Runnable {
     private PipedInputStream pipedInputStream;
     private AdcInputStream adcInputStream;
-    private int sampleBatchSize = 2048;
+    private int sampleBatchSize = 4096;
     public DataProcessor() {
         pipedInputStream = new PipedInputStream();
     }
