@@ -36,7 +36,7 @@ public class ChartManager implements AutoCloseable{
         }
 
         new Thread(dataProcessor).start();//TODO TEMPORARY SOLUTION
-        new Thread(oscilloscopeDataReader).start();
+        oscilloscopeDataReader.start();
 
         this.sampleRenderer = new SampleRenderer(scopeChart);
         this.sampleSupplier = new SampleSupplier(samplesCapture);
@@ -108,6 +108,7 @@ public class ChartManager implements AutoCloseable{
 
     @Override
     public void close() throws Exception {
-
+        oscilloscopeDataReader.interrupt();
+        oscilloscopeDataReader.join();
     }
 }

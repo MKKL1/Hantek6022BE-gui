@@ -1,4 +1,6 @@
 package com.mkkl.hantekgui.protocol;
 
-public record OscilloscopeDevice(String name, String portName, int portId) {
+import com.mkkl.hantekapi.devicemanager.HantekDeviceRecord;
+
+public record OscilloscopeDevice(String name, HantekDeviceRecord deviceRecord) {
 }
