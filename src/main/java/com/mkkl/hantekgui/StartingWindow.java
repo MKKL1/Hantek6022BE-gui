@@ -59,6 +59,7 @@ public class StartingWindow extends Application {
         try {
             List<OscilloscopeDevice> deviceList = new ArrayList<>(scopeCommunication.getConnectedDevices());
             availableOscilloscopes.setItems(FXCollections.observableList(deviceList));
+            availableOscilloscopes.setValue(deviceList.get(0));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,7 +67,7 @@ public class StartingWindow extends Application {
 
     public void onStartButtonClicked(MouseEvent mouseEvent) {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(MainWindow.class.getResource("hello-view.fxml"));
+            FXMLLoader fxmlLoader = new FXMLLoader(MainWindow.class.getResource("main-view.fxml"));
             Scene scene = new Scene(fxmlLoader.load(), 320, 240);
             Stage stage = new Stage();
             stage.setTitle("Hello!");
@@ -75,6 +76,10 @@ public class StartingWindow extends Application {
             scopeCommunication.connectDevice(availableOscilloscopes.getValue());
             mainWindow.init(scopeCommunication);
 
+            stage.setOnCloseRequest(t -> {
+                Platform.exit();
+                System.exit(0);
+            });
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();

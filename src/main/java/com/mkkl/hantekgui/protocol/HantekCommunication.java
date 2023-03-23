@@ -1,14 +1,17 @@
 package com.mkkl.hantekgui.protocol;
 
 import com.mkkl.hantekapi.Oscilloscope;
-import com.mkkl.hantekapi.OscilloscopeManager;
+import com.mkkl.hantekapi.ScopeUtils;
 import com.mkkl.hantekapi.channel.ActiveChannels;
 import com.mkkl.hantekapi.channel.ChannelManager;
 import com.mkkl.hantekapi.channel.ScopeChannel;
 import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
+import com.mkkl.hantekapi.communication.adcdata.AsyncScopeDataReader;
 import com.mkkl.hantekapi.communication.adcdata.ScopeDataReader;
+import com.mkkl.hantekapi.constants.HantekDevices;
 import com.mkkl.hantekapi.constants.SampleRates;
 import com.mkkl.hantekapi.constants.VoltageRange;
+import com.mkkl.hantekapi.devicemanager.OscilloscopeManager;
 
 import javax.usb.UsbException;
 import javax.usb.UsbInterface;
@@ -28,49 +31,24 @@ public class HantekCommunication implements OscilloscopeCommunication {
     private Oscilloscope oscilloscope;
     private final boolean[] channelsActive = new boolean[2];
     private ScopeChannel[] channels;
-    private ScopeDataReader scopeDataReader;
     private ChannelManager channelManager;
     private int packetSize;
 
     @Override
     public Collection<OscilloscopeDevice> getConnectedDevices() throws Exception {
         List<OscilloscopeDevice> deviceList = new ArrayList<>();
-        OscilloscopeManager.findSupportedDevices().forEach((key, value) -> {
-            try {
-                deviceList.add(new OscilloscopeDevice(key.getProductString(), key.getParentUsbPort().toString(), key.getParentUsbPort().getPortNumber()));
-            } catch (UsbException | UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+        OscilloscopeManager.findSupportedDevices().getConnections().forEach(x -> {
+            deviceList.add(new OscilloscopeDevice(x.oscilloscope().toString(), x));
         });
+
         return deviceList;
     }
 
     @Override
     public void connectDevice(OscilloscopeDevice device) throws Exception {
-        oscilloscope = OscilloscopeManager.connections.entrySet()
-                .stream()
-                .filter(entry -> device.portId() == entry.getKey().getParentUsbPort().getPortNumber())
-                .findFirst()
-                .orElseThrow()
-                .getValue();
-
-        if (!oscilloscope.isFirmwarePresent()) {
-            oscilloscope.flash_firmware();
-            while(oscilloscope == null || !oscilloscope.isFirmwarePresent()) {
-                Thread.sleep(100);
-                oscilloscope = OscilloscopeManager.connections.entrySet()
-                        .stream()
-                        .filter(entry -> device.portId() == entry.getKey().getParentUsbPort().getPortNumber())
-                        .findFirst()
-                        .orElseThrow()
-                        .getValue();
-                System.out.print('.');
-            }
-        }
-
+//        oscilloscope = device.deviceRecord().oscilloscope();
+        oscilloscope = ScopeUtils.getAndFlashFirmware(HantekDevices.DSO6022BE);
         oscilloscope.setup();
-
-        scopeDataReader = oscilloscope.createDataReader();
         channels = oscilloscope.getChannels().toArray(new ScopeChannel[0]);
         channelManager = oscilloscope.getChannelManager();
         packetSize = oscilloscope.getScopeInterface().getEndpoint().getPacketSize();
@@ -124,29 +102,20 @@ public class HantekCommunication implements OscilloscopeCommunication {
     }
 
     @Override
-    public UsbInterface getConnectedInterface() {
-        return oscilloscope.getScopeInterface().getUsbInterface();
-    }
-
-    @Override
     public void startCapture() {
-        scopeDataReader.startCapture();
+        oscilloscope.startCapture();
     }
 
     @Override
     public void stopCapture() {
-        scopeDataReader.stopCapture();
+        oscilloscope.stopCapture();
     }
 
     @Override
-    public CompletableFuture<Void> asyncRead(short size, Consumer<byte[]> packetConsumer) {
-        return scopeDataReader.asyncRead(size, packetConsumer);
+    public AsyncScopeDataReader getAsyncReader() {
+        return new AsyncScopeDataReader(oscilloscope, 5);
     }
 
-    @Override
-    public byte[] syncRead(short size) throws IOException, UsbException {
-        return scopeDataReader.syncRead(size);
-    }
 
     @Override
     public byte[] readSample(InputStream stream) throws IOException {
@@ -189,6 +158,11 @@ public class HantekCommunication implements OscilloscopeCommunication {
     @Override
     public AdcInputStream getAdcInputStream(InputStream inputStream) {
         return new AdcInputStream(inputStream, channelManager, packetSize);
+    }
+
+    @Override
+    public short getPacketSize() {
+        return oscilloscope.getScopeInterface().getEndpoint().getMaxPacketSize();
     }
 
     public Oscilloscope getOscilloscope() {

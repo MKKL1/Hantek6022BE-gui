@@ -1,29 +1,26 @@
-package com.mkkl.hantekgui;
+package com.mkkl.hantekgui.ui.chart;
 
-import com.mkkl.hantekgui.capture.SamplesBatch;
 import com.mkkl.hantekgui.protocol.OscilloscopeChannel;
 import de.gsi.chart.XYChart;
 import de.gsi.chart.axes.spi.DefaultNumericAxis;
+import de.gsi.chart.plugins.ParameterMeasurements;
 import de.gsi.chart.plugins.Zoomer;
 import de.gsi.chart.renderer.ErrorStyle;
 import de.gsi.chart.renderer.datareduction.DefaultDataReducer;
 import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
-import de.gsi.dataset.DataSet;
 import de.gsi.dataset.spi.FloatDataSet;
-import de.gsi.dataset.testdata.spi.CosineFunction;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class ScopeChart extends XYChart {
-    public static int MIN_PIXEL_DISTANCE = 2;
+    public static int MIN_PIXEL_DISTANCE = 3;
     private FloatDataSet[] channelDataSets;
     ErrorDataSetRenderer errorDataSetRenderer = new ErrorDataSetRenderer();
     public ScopeChart() {
         super(new DefaultNumericAxis(), new DefaultNumericAxis());
         getAxes().forEach(axis -> axis.setAnimated(false));
         getPlugins().add(new Zoomer());
+        getPlugins().add(new ParameterMeasurements());
 
         errorDataSetRenderer.setErrorType(ErrorStyle.NONE);
         errorDataSetRenderer.setDrawMarker(false);

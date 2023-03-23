@@ -1,6 +1,7 @@
-package com.mkkl.hantekgui.capture;
+package com.mkkl.hantekgui.ui.chart.render;
 
-import com.mkkl.hantekgui.OscilloscopeSettings;
+import com.mkkl.hantekgui.capture.SamplesBatch;
+import com.mkkl.hantekgui.settings.SettingsRegistry;
 import javafx.animation.AnimationTimer;
 
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +17,9 @@ public class SampleRenderScheduler {
     AnimationTimer timer;
     public SampleRenderScheduler(Consumer<SamplesBatch> renderer, Supplier<CompletableFuture<SamplesBatch>> samplesSupplier) {
         this.samplesSupplier = samplesSupplier;
-        updateTime = (long) ((1/(double) OscilloscopeSettings.getInstance().getChartFpsLimit())*1e9);
+        calculateUpdateTime(SettingsRegistry.chartFpsLimit.getValue());
+        SettingsRegistry.chartFpsLimit.addValueChangeListener((oldValue, newValue) -> calculateUpdateTime(newValue));
+
         final long[] nextUpdate = {0};
         timer = new AnimationTimer() {
             @Override
@@ -35,12 +38,24 @@ public class SampleRenderScheduler {
         };
     }
 
-    public void start() {
-        //Requesting first data frame
+    public SampleRenderScheduler(SampleRenderer sampleRenderer, Supplier<CompletableFuture<SamplesBatch>> samplesSupplier) {
+        this(sampleRenderer::renderSampleBatch, samplesSupplier);
+    }
+
+    private void calculateUpdateTime(float fpsLimit) {
+        updateTime = (long) ((1/fpsLimit)*1e9);
+    }
+
+    public void reset() {
         samplesSupplier.get().thenAccept(samples -> {
             samplesBatch = samples;
             shouldUpdate = true;
         });
+    }
+
+    public void start() {
+        //Requesting first data frame
+        reset();
         timer.start();
     }
 

@@ -1,14 +1,13 @@
-package com.mkkl.hantekgui;
+package com.mkkl.hantekgui.ui.chart.render;
 
 import com.mkkl.hantekgui.capture.SamplesBatch;
+import com.mkkl.hantekgui.ui.chart.ScopeChart;
 
-import java.util.Arrays;
-
-public class ScopeSamplesRenderer {
+public class SampleRenderer {
     private final ScopeChart scopeChart;
     private float[] xvalues;
 
-    public ScopeSamplesRenderer(ScopeChart scopeChart) {
+    public SampleRenderer(ScopeChart scopeChart) {
         this.scopeChart = scopeChart;
     }
 
