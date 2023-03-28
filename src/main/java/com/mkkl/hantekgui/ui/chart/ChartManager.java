@@ -27,13 +27,8 @@ public class ChartManager implements AutoCloseable{
     private ChartManager(OscilloscopeCommunication scopeCommunication, ScopeChart scopeChart) {
         this.scopeCommunication = scopeCommunication;
         this.scopeChart = scopeChart;
-        this.dataProcessor = new DataProcessor();
-        this.oscilloscopeDataReader = new OscilloscopeDataReader(scopeCommunication);
-        try {
-            dataProcessor.connect(oscilloscopeDataReader.getPipedOutputStream(), scopeCommunication);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);//TODO not sure if this is good solution
-        }
+        this.dataProcessor = new DataProcessor(scopeCommunication);
+        this.oscilloscopeDataReader = new OscilloscopeDataReader(scopeCommunication, dataProcessor);
 
         new Thread(dataProcessor).start();//TODO TEMPORARY SOLUTION
         oscilloscopeDataReader.start();

@@ -6,28 +6,30 @@ import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.ByteBuffer;
 
 public class DataProcessor implements Runnable {
-    private final PipedInputStream pipedInputStream;
+    private final ByteBufferInputStream byteBufferInputStream;
     private AdcInputStream adcInputStream;
     private int sampleBatchSize = 4096;
-    public DataProcessor() {
-        pipedInputStream = new PipedInputStream();
+
+    public DataProcessor(OscilloscopeCommunication oscilloscopeCommunication) {
+        this.byteBufferInputStream = new ByteBufferInputStream();
+        adcInputStream = oscilloscopeCommunication.getAdcInputStream(this.byteBufferInputStream);
     }
 
-    public DataProcessor(PipedOutputStream pipedOutputStream, OscilloscopeCommunication oscilloscopeCommunication) throws IOException {
-        this();
-        connect(pipedOutputStream, oscilloscopeCommunication);
-    }
-
-    public void connect(PipedOutputStream pipedOutputStream, OscilloscopeCommunication oscilloscopeCommunication) throws IOException {
-        this.pipedInputStream.connect(pipedOutputStream);
-        adcInputStream = oscilloscopeCommunication.getAdcInputStream(pipedInputStream);
+    public synchronized void receiveData(ByteBuffer buffer) {
+        byteBufferInputStream.setBuf(buffer);
+        notifyAll();
     }
 
     @Override
     public void run() {
         try {
+            if(byteBufferInputStream.buf == null)
+                synchronized (this) {
+                    wait();
+                }
             while (!Thread.currentThread().isInterrupted()) {
                 int readSamples = 0;
                 float[] ch1data = new float[sampleBatchSize];
@@ -39,16 +41,23 @@ public class DataProcessor implements Runnable {
                         ch2data[readSamples] = sample[1];
                         readSamples++;
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        try {
+                            synchronized (this){
+                                wait();
+                            }
+                        } catch (InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                        }
                     }
                 }
                 //Fire sample batch processed event
                 DataReaderManager.fireDataReceivedEvent(new SamplesBatch(ch1data, ch2data));
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } finally {
             try {
                 adcInputStream.close();
-                pipedInputStream.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
