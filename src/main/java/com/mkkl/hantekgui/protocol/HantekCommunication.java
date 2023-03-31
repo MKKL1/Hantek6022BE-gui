@@ -5,6 +5,7 @@ import com.mkkl.hantekapi.ScopeUtils;
 import com.mkkl.hantekapi.channel.ActiveChannels;
 import com.mkkl.hantekapi.channel.ChannelManager;
 import com.mkkl.hantekapi.channel.ScopeChannel;
+import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
 import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
 import com.mkkl.hantekapi.communication.adcdata.AsyncScopeDataReader;
 import com.mkkl.hantekapi.communication.adcdata.ScopeDataReader;
@@ -126,33 +127,8 @@ public class HantekCommunication implements OscilloscopeCommunication {
     }
 
     @Override
-    public float formatRawData(OscilloscopeChannel channel, byte raw) {
-        return channels[channel.id()].formatData(raw);
-    }
-
-    @Override
-    public float[] formatChannelsData(byte[] raw) {
-        return new float[] {
-                channels[0].formatData(raw[0]),
-                channels[1].formatData(raw[1])
-        };
-    }
-
-    @Override
-    public void processPacket(byte[] data, Consumer<float[]> consumer) {
-        int bytesToRead = data.length;
-        AdcInputStream inputStream = new AdcInputStream(new ByteArrayInputStream(data), channelManager, packetSize);
-        try {
-            while(bytesToRead > 0) {
-                float[] channelData = inputStream.readFormattedVoltages();
-                consumer.accept(channelData);
-                bytesToRead -= 2;
-            }
-        } catch (EOFException ignored) {
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public ADCDataFormatter getAdcDataFormatter() {
+        return new ADCDataFormatter(channelManager);
     }
 
     @Override

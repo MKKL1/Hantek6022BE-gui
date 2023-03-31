@@ -4,6 +4,7 @@ import com.mkkl.hantekapi.Oscilloscope;
 import com.mkkl.hantekapi.communication.adcdata.AsyncScopeDataReader;
 import com.mkkl.hantekapi.communication.adcdata.BufferedCallback;
 import com.mkkl.hantekapi.communication.adcdata.ByteArrayCallback;
+import com.mkkl.hantekgui.AppConstants;
 import com.mkkl.hantekgui.protocol.DataReaderListener;
 import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 
@@ -23,7 +24,7 @@ public class OscilloscopeDataReader extends Thread {
     private final DataProcessor dataProcessor;
     private final BufferManager bufferManager;
     private final AsyncScopeDataReader asyncScopeDataReader;
-    private final short maxPacketSize;
+    private final short packetSize;
     private final AtomicInteger packetsInQueue = new AtomicInteger(0);
 
     public OscilloscopeDataReader(OscilloscopeCommunication scopeCommunication, DataProcessor dataProcessor) {
@@ -31,8 +32,10 @@ public class OscilloscopeDataReader extends Thread {
         this.scopeCommunication = scopeCommunication;
         this.dataProcessor = dataProcessor;
 
-        maxPacketSize = (short) (scopeCommunication.getPacketSize()*4);
-        bufferManager = new BufferManager(20, maxPacketSize);
+        //TODO calculate by multiple of max packet size of endpoint
+        packetSize = AppConstants.packetSize;
+
+        bufferManager = new BufferManager(20, packetSize);
         asyncScopeDataReader = scopeCommunication.getAsyncReader();
         asyncScopeDataReader.registerListener(new BufferedCallback() {
             @Override
@@ -42,7 +45,6 @@ public class OscilloscopeDataReader extends Thread {
                 packetsInQueue.decrementAndGet();
             }
         });
-        System.out.println("max packet size " + maxPacketSize);
     }
 
     private volatile boolean capture = true;
@@ -62,7 +64,7 @@ public class OscilloscopeDataReader extends Thread {
                     synchronized (this) {
                         wait();
                     }
-                asyncScopeDataReader.read(maxPacketSize, bufferManager.getNext());
+                asyncScopeDataReader.read(packetSize, bufferManager.getNext());
                 packetsInQueue.incrementAndGet();
             } catch (InterruptedException e) {
                 e.printStackTrace();

@@ -1,5 +1,6 @@
 package com.mkkl.hantekgui.protocol;
 
+import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
 import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
 import com.mkkl.hantekapi.communication.adcdata.AsyncScopeDataReader;
 
@@ -35,9 +36,7 @@ public interface OscilloscopeCommunication {
     AsyncScopeDataReader getAsyncReader();
 
     byte[] readSample(InputStream stream) throws IOException;
-    float formatRawData(OscilloscopeChannel channel, byte raw);
-    float[] formatChannelsData(byte[] raw);
-    void processPacket(byte[] data, Consumer<float[]> consumer);
+    ADCDataFormatter getAdcDataFormatter();
     AdcInputStream getAdcInputStream(InputStream inputStream);
     short getPacketSize();
 }

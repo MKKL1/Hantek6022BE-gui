@@ -1,74 +1,51 @@
 package com.mkkl.hantekgui.capture;
 
-import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
+import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
+import com.mkkl.hantekgui.AppConstants;
 import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataProcessor implements Runnable {
-    private final ByteBufferInputStream byteBufferInputStream;
-    private AdcInputStream adcInputStream;
-    private int sampleBatchSize = 4096;
+    private final BlockingQueue<ByteBuffer> bufferQueue = new LinkedBlockingQueue<>();
+    private final ADCDataFormatter adcDataFormatter;
+    private final int sampleBatchSize;
 
     public DataProcessor(OscilloscopeCommunication oscilloscopeCommunication) {
-        this.byteBufferInputStream = new ByteBufferInputStream();
-        adcInputStream = oscilloscopeCommunication.getAdcInputStream(this.byteBufferInputStream);
+        this.sampleBatchSize = AppConstants.packetSize/2;
+        this.adcDataFormatter = oscilloscopeCommunication.getAdcDataFormatter();
     }
 
-    public synchronized void receiveData(ByteBuffer buffer) {
-        byteBufferInputStream.setBuf(buffer);
-        notifyAll();
+    public void receiveData(ByteBuffer buffer) {
+        bufferQueue.add(buffer);
     }
 
     @Override
     public void run() {
         try {
-            if(byteBufferInputStream.buf == null)
-                synchronized (this) {
-                    wait();
-                }
             while (!Thread.currentThread().isInterrupted()) {
-                int readSamples = 0;
+                ByteBuffer byteBuffer = bufferQueue.take();
+                int samplesRead = 0;
                 float[] ch1data = new float[sampleBatchSize];
                 float[] ch2data = new float[sampleBatchSize];
-                while(readSamples < sampleBatchSize) {
-                    try {
-                        float[] sample = adcInputStream.readFormattedVoltages();
-                        ch1data[readSamples] = sample[0];
-                        ch2data[readSamples] = sample[1];
-                        readSamples++;
-                    } catch (IOException e) {
-                        try {
-                            synchronized (this){
-                                wait();
-                            }
-                        } catch (InterruptedException ex) {
-                            Thread.currentThread().interrupt();
-                        }
-                    }
+                while(byteBuffer.remaining()>=2) {
+                    float[] samplefloat = adcDataFormatter.formatSample(byteBuffer.get(), byteBuffer.get());
+                    ch1data[samplesRead] = samplefloat[0];
+                    ch2data[samplesRead] = samplefloat[1];
+                    samplesRead++;
                 }
-                //Fire sample batch processed event
                 DataReaderManager.fireDataReceivedEvent(new SamplesBatch(ch1data, ch2data));
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
-            try {
-                adcInputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
         }
-    }
-
-    public int getSampleBatchSize() {
-        return sampleBatchSize;
-    }
-
-    public void setSampleBatchSize(int sampleBatchSize) {
-        this.sampleBatchSize = sampleBatchSize;
     }
 }
