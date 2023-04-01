@@ -8,7 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class ContinuousSampleCapture implements SamplesCapture{
+public class ContinuousSampleCapture implements SamplesCapture {
     CompletableFuture<SamplesBatch> completableFuture;
     private final BlockingQueue<SampleRequest> requestQueue = new LinkedBlockingQueue<>();
     private final DataReceivedEvent dataReceivedEvent;

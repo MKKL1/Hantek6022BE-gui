@@ -8,21 +8,17 @@ import com.mkkl.hantekapi.channel.ScopeChannel;
 import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
 import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
 import com.mkkl.hantekapi.communication.adcdata.AsyncScopeDataReader;
-import com.mkkl.hantekapi.communication.adcdata.ScopeDataReader;
+import com.mkkl.hantekapi.communication.readers.async.ReuseTransferAsyncReader;
 import com.mkkl.hantekapi.constants.HantekDevices;
 import com.mkkl.hantekapi.constants.SampleRates;
 import com.mkkl.hantekapi.constants.VoltageRange;
 import com.mkkl.hantekapi.devicemanager.OscilloscopeManager;
 
-import javax.usb.UsbException;
-import javax.usb.UsbInterface;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 //Implementation of hantek communication protocol
@@ -115,6 +111,11 @@ public class HantekCommunication implements OscilloscopeCommunication {
     @Override
     public AsyncScopeDataReader getAsyncReader() {
         return new AsyncScopeDataReader(oscilloscope, 5);
+    }
+
+    @Override
+    public ReuseTransferAsyncReader getReuseAsyncReader(int bufferSize, int savedTransfers) {
+        return new ReuseTransferAsyncReader(oscilloscope, bufferSize, savedTransfers, 5);
     }
 
 

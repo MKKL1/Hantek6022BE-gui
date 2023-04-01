@@ -12,12 +12,13 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class DataProcessor implements Runnable {
+public class DataProcessor extends Thread {
     private final BlockingQueue<ByteBuffer> bufferQueue = new LinkedBlockingQueue<>();
     private final ADCDataFormatter adcDataFormatter;
     private final int sampleBatchSize;
 
     public DataProcessor(OscilloscopeCommunication oscilloscopeCommunication) {
+        super("Data Processor Thread");
         this.sampleBatchSize = AppConstants.packetSize/2;
         this.adcDataFormatter = oscilloscopeCommunication.getAdcDataFormatter();
     }
@@ -34,7 +35,7 @@ public class DataProcessor implements Runnable {
                 int samplesRead = 0;
                 float[] ch1data = new float[sampleBatchSize];
                 float[] ch2data = new float[sampleBatchSize];
-                while(byteBuffer.remaining()>=2) {
+                while(byteBuffer.remaining()>=2 && samplesRead < sampleBatchSize) {
                     float[] samplefloat = adcDataFormatter.formatSample(byteBuffer.get(), byteBuffer.get());
                     ch1data[samplesRead] = samplefloat[0];
                     ch2data[samplesRead] = samplefloat[1];

@@ -3,6 +3,7 @@ package com.mkkl.hantekgui.protocol;
 import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
 import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
 import com.mkkl.hantekapi.communication.adcdata.AsyncScopeDataReader;
+import com.mkkl.hantekapi.communication.readers.async.ReuseTransferAsyncReader;
 
 import javax.usb.UsbException;
 import javax.usb.UsbInterface;
@@ -34,6 +35,7 @@ public interface OscilloscopeCommunication {
 //
 //    byte[] syncRead(short size) throws IOException, UsbException;
     AsyncScopeDataReader getAsyncReader();
+    ReuseTransferAsyncReader getReuseAsyncReader(int bufferSize, int savedTransfers);
 
     byte[] readSample(InputStream stream) throws IOException;
     ADCDataFormatter getAdcDataFormatter();
