@@ -9,60 +9,53 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ContinuousSampleCapture implements SamplesCapture {
-    CompletableFuture<SamplesBatch> completableFuture;
     private final BlockingQueue<SampleRequest> requestQueue = new LinkedBlockingQueue<>();
-    private final DataReceivedEvent dataReceivedEvent;
-
-    private SampleRequest currentRequest;
-
+    private final CaptureHistory captureHistory = CaptureHistory.getInstance();
+    private final Thread thread;
     public ContinuousSampleCapture() {
-        dataReceivedEvent = samplesBatch -> {
-            if(currentRequest == null && !requestQueue.isEmpty()) {
+        thread = new Thread(() -> {
+            while(!Thread.currentThread().isInterrupted()) {
                 try {
-                    currentRequest = requestQueue.take();
-                } catch (InterruptedException e) {
-                    //TODO handle
-                    e.printStackTrace();
-                }
-            }
+                    SampleRequest sampleRequest = requestQueue.take();
+                    SamplesBatch[] samples = captureHistory.getNewSamples(sampleRequest.countToRead);
 
-            if(currentRequest != null && currentRequest.countToRead > 0) {
-                currentRequest.countToRead -= samplesBatch.length;
-                if(currentRequest.samplesBatch == null) currentRequest.samplesBatch = samplesBatch;
-                else {
-                    if(currentRequest.countToRead >= 0) currentRequest.samplesBatch.concatenate(samplesBatch);
-                    else currentRequest.samplesBatch.concatenate(samplesBatch, samplesBatch.length+currentRequest.countToRead);
-                }
-                if(currentRequest.countToRead <= 0) {
-                    currentRequest.getCompletableFuture().complete(currentRequest.samplesBatch);
-                    currentRequest = null;
+                    SamplesBatch samplesBatch = samples[0];
+                    int toread = sampleRequest.countToRead-samplesBatch.length;
+                    for(int i = 1; i < samples.length && toread > 0; i++) {
+                        SamplesBatch cbatch = samples[i];
+                        if(toread > cbatch.length) samplesBatch.concatenate(cbatch);
+                        else samplesBatch.concatenate(cbatch, toread);
+                        toread -= cbatch.length;
+                    }
+                    sampleRequest.getCompletableFuture().complete(samplesBatch);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
-        };
-        DataReaderManager.register(dataReceivedEvent);
+        });
+        thread.start();
         SettingsRegistry.sampleCountPerFrame.addValueChangeListener((oldValue, newValue) -> {
-            currentRequest = null;
             requestQueue.clear();
         });
     }
 
     @Override
     public CompletableFuture<SamplesBatch> requestSamples(int size) {
-        completableFuture = new CompletableFuture<>();
+        CompletableFuture<SamplesBatch> completableFuture = new CompletableFuture<>();
         requestQueue.add(new SampleRequest(completableFuture, size));
         return completableFuture;
     }
 
     @Override
-    public void close() throws IOException {
-        DataReaderManager.unregister(dataReceivedEvent);
+    public void close() throws Exception {
+        thread.interrupt();
+        thread.join();
     }
 }
 
 class SampleRequest {
     private final CompletableFuture<SamplesBatch> completableFuture;
     public int countToRead;
-    public SamplesBatch samplesBatch;
 
     public SampleRequest(CompletableFuture<SamplesBatch> completableFuture, int countToRead) {
         this.completableFuture = completableFuture;

@@ -7,7 +7,7 @@ import com.mkkl.hantekapi.channel.ChannelManager;
 import com.mkkl.hantekapi.channel.ScopeChannel;
 import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
 import com.mkkl.hantekapi.communication.adcdata.AdcInputStream;
-import com.mkkl.hantekapi.communication.adcdata.AsyncScopeDataReader;
+import com.mkkl.hantekapi.communication.readers.async.AsyncScopeDataReader;
 import com.mkkl.hantekapi.communication.readers.async.ReuseTransferAsyncReader;
 import com.mkkl.hantekapi.constants.HantekDevices;
 import com.mkkl.hantekapi.constants.SampleRates;

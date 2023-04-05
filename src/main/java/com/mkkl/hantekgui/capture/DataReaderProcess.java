@@ -9,14 +9,14 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 
 //Class used in separate thread to minimize gaps between readings
-public class OscilloscopeDataReader extends Thread {
+public class DataReaderProcess extends Thread {
     private final OscilloscopeCommunication scopeCommunication;
     private final DataProcessor dataProcessor;
     private final ReuseTransferAsyncReader asyncScopeDataReader;
     private final short packetSize;
     private final AtomicInteger packetsInQueue = new AtomicInteger(0);
 
-    public OscilloscopeDataReader(OscilloscopeCommunication scopeCommunication, DataProcessor dataProcessor) {
+    public DataReaderProcess(OscilloscopeCommunication scopeCommunication, DataProcessor dataProcessor) {
         super("Data Reader Thread");
         this.scopeCommunication = scopeCommunication;
         this.dataProcessor = dataProcessor;
@@ -52,7 +52,7 @@ public class OscilloscopeDataReader extends Thread {
                         wait();
                     }
                 asyncScopeDataReader.read();
-                packetsInQueue.incrementAndGet();
+                System.out.println(packetsInQueue.incrementAndGet());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

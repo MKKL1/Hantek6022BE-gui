@@ -9,7 +9,6 @@ import com.mkkl.hantekgui.capture.*;
 import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 public class ChartManager implements AutoCloseable{
     private final ScopeChart scopeChart;
@@ -18,7 +17,7 @@ public class ChartManager implements AutoCloseable{
     private final SampleRenderScheduler sampleRenderScheduler;
     private final SampleRenderer sampleRenderer;
     private final DataProcessor dataProcessor;
-    private final OscilloscopeDataReader oscilloscopeDataReader;
+    private final DataReaderProcess dataReaderProcess;
     private final SampleSupplier sampleSupplier;
     private final OscilloscopeCommunication scopeCommunication;
 
@@ -28,10 +27,10 @@ public class ChartManager implements AutoCloseable{
         this.scopeCommunication = scopeCommunication;
         this.scopeChart = scopeChart;
         this.dataProcessor = new DataProcessor(scopeCommunication);
-        this.oscilloscopeDataReader = new OscilloscopeDataReader(scopeCommunication, dataProcessor);
+        this.dataReaderProcess = new DataReaderProcess(scopeCommunication, dataProcessor);
 
         new Thread(dataProcessor).start();//TODO TEMPORARY SOLUTION
-        oscilloscopeDataReader.start();
+        dataReaderProcess.start();
 
         this.sampleRenderer = new SampleRenderer(scopeChart);
         this.sampleSupplier = new SampleSupplier(samplesCapture);
@@ -82,7 +81,7 @@ public class ChartManager implements AutoCloseable{
     public void setCaptureMethod(CaptureMethods captureMethod) {
         try {
             samplesCapture.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         switch (captureMethod) {
@@ -103,7 +102,9 @@ public class ChartManager implements AutoCloseable{
 
     @Override
     public void close() throws Exception {
-        oscilloscopeDataReader.interrupt();
-        oscilloscopeDataReader.join();
+        dataReaderProcess.interrupt();
+        dataReaderProcess.join();
+
+        samplesCapture.close();
     }
 }

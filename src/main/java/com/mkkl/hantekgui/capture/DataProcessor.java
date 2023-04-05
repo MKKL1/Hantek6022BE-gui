@@ -4,16 +4,13 @@ import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
 import com.mkkl.hantekgui.AppConstants;
 import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataProcessor extends Thread {
-    private final BlockingQueue<ByteBuffer> bufferQueue = new LinkedBlockingQueue<>();
+    private final BlockingQueue<ByteBuffer> bufferQueue = new LinkedBlockingQueue<>(64);
     private final ADCDataFormatter adcDataFormatter;
     private final int sampleBatchSize;
 
