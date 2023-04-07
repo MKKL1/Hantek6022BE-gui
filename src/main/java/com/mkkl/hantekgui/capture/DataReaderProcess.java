@@ -52,7 +52,7 @@ public class DataReaderProcess extends Thread {
                         wait();
                     }
                 asyncScopeDataReader.read();
-                System.out.println(packetsInQueue.incrementAndGet());
+                packetsInQueue.incrementAndGet();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -1,5 +1,6 @@
 package com.mkkl.hantekgui.capture;
 
+import com.mkkl.hantekgui.AppConstants;
 import com.mkkl.hantekgui.settings.SettingsRegistry;
 
 import java.io.Closeable;
@@ -17,7 +18,8 @@ public class ContinuousSampleCapture implements SamplesCapture {
             while(!Thread.currentThread().isInterrupted()) {
                 try {
                     SampleRequest sampleRequest = requestQueue.take();
-                    SamplesBatch[] samples = captureHistory.getNewSamples(sampleRequest.countToRead);
+                    int batchesToRead = (int) Math.ceil((float)sampleRequest.countToRead/AppConstants.sampleBatchSize);
+                    SamplesBatch[] samples = captureHistory.getNewSamples(batchesToRead);
 
                     SamplesBatch samplesBatch = samples[0];
                     int toread = sampleRequest.countToRead-samplesBatch.length;
@@ -27,6 +29,11 @@ public class ContinuousSampleCapture implements SamplesCapture {
                         else samplesBatch.concatenate(cbatch, toread);
                         toread -= cbatch.length;
                     }
+                    if(samplesBatch.length != sampleRequest.countToRead) {
+                        System.out.println("thats a big problem");
+                        continue;
+                    }
+
                     sampleRequest.getCompletableFuture().complete(samplesBatch);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -36,6 +43,14 @@ public class ContinuousSampleCapture implements SamplesCapture {
         thread.start();
         SettingsRegistry.sampleCountPerFrame.addValueChangeListener((oldValue, newValue) -> {
             requestQueue.clear();
+            captureHistory.clear();
+            thread.interrupt();
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            thread.start();
         });
     }
 
