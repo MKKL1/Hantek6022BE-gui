@@ -20,6 +20,11 @@ public class SettingsAttribute<T> {
         listeners.add(listener);
     }
 
+    public void addAndActiveListener(ValueChangeListener<T> listener) {
+        listeners.add(listener);
+        listener.valueChanged(null, value);
+    }
+
     public void removeValueChangeListener(ValueChangeListener<T> listener) {
         listeners.remove(listener);
     }

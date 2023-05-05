@@ -15,7 +15,7 @@ public class DataReaderManager {
     }
 
     //TODO make accessible only from data processor
-    public static void fireDataReceivedEvent(SamplesBatch samplesBatch) {
-        dataReceivedEventList.forEach(x -> x.onDataReceived(samplesBatch));
+    public static void fireDataReceivedEvent(SampleBatch sampleBatch) {
+        dataReceivedEventList.forEach(x -> x.onDataReceived(sampleBatch));
     }
 }

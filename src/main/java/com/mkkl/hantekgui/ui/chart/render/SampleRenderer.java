@@ -1,27 +1,44 @@
 package com.mkkl.hantekgui.ui.chart.render;
 
-import com.mkkl.hantekgui.capture.SamplesBatch;
+import com.mkkl.hantekgui.capture.SampleBatch;
+import com.mkkl.hantekgui.protocol.OscilloscopeSampleRate;
 import com.mkkl.hantekgui.ui.chart.ScopeChart;
 
 public class SampleRenderer {
     private final ScopeChart scopeChart;
+    private final SampleRenderScheduler sampleRenderScheduler;
     private float[] xvalues;
 
-    public SampleRenderer(ScopeChart scopeChart) {
+    public SampleRenderer(ScopeChart scopeChart, SampleDataSource sampleDataSource) {
         this.scopeChart = scopeChart;
+        sampleRenderScheduler = new SampleRenderScheduler(sampleDataSource);
+        sampleRenderScheduler.registerListener(this::renderSamples);
+        sampleRenderScheduler.start();
     }
 
-    public void setXPointsDistance(int count, float distance) {
-        xvalues = new float[count];
-        float calcdist = 0;
-        for(int i = 0; i < count; i++) {
-            xvalues[i] = calcdist;
-            calcdist += distance;
+    public void pause() {
+        sampleRenderScheduler.stop();
+    }
+
+    public void resume() {
+        sampleRenderScheduler.start();
+    }
+
+    public void refresh() {
+        sampleRenderScheduler.reset();
+    }
+
+    public void updateXAxisPoints(OscilloscopeSampleRate oscilloscopeSampleRate, int points) {
+        xvalues = new float[points];
+        float baseDist = oscilloscopeSampleRate.getTimeBetweenPoints();
+        for(int i = 0; i < points; i++) {
+            xvalues[i] = i*baseDist;
         }
     }
 
-    public void renderSampleBatch(SamplesBatch samplesBatch) {
-        scopeChart.getDataSetByChannelId(0).set(xvalues, samplesBatch.getCh1Data());
-        scopeChart.getDataSetByChannelId(1).set(xvalues, samplesBatch.getCh2Data());
+    private void renderSamples(SampleBatch sampleBatch) {
+        scopeChart.getDataSetByChannelId(0).set(xvalues, sampleBatch.getCh1Data());
+        scopeChart.getDataSetByChannelId(1).set(xvalues, sampleBatch.getCh2Data());
     }
+
 }

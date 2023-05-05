@@ -6,7 +6,7 @@ import org.apache.commons.collections4.queue.CircularFifoQueue;
 import java.util.*;
 
 public class CaptureHistory {
-    private final CircularFifoQueue<SamplesBatch> circularFifoQueue;
+    private final CircularFifoQueue<SampleBatch> circularFifoQueue;
     private final int queueSize;
     private int newToRead = 0;
 
@@ -20,9 +20,9 @@ public class CaptureHistory {
         DataReaderManager.register(this::addSamples);
     }
 
-    private void addSamples(SamplesBatch samplesBatch) {
+    private void addSamples(SampleBatch sampleBatch) {
         synchronized (circularFifoQueue) {
-            circularFifoQueue.add(samplesBatch);
+            circularFifoQueue.add(sampleBatch);
         }
         if(newToRead < queueSize) newToRead++;
         if(waitForCount > 0) {
@@ -43,10 +43,10 @@ public class CaptureHistory {
         }
     }
 
-    public SamplesBatch[] getSamples(int size) {
-        ArrayList<SamplesBatch> batchArrayList = new ArrayList<>(size);
+    public SampleBatch[] getSamples(int size) {
+        ArrayList<SampleBatch> batchArrayList = new ArrayList<>(size);
         synchronized (circularFifoQueue) {
-            Iterator<SamplesBatch> iterator = circularFifoQueue.iterator();
+            Iterator<SampleBatch> iterator = circularFifoQueue.iterator();
             try {
                 for (int i = 0; i < size; i++) {
                     batchArrayList.add(iterator.next());
@@ -57,10 +57,10 @@ public class CaptureHistory {
                 throw e;
             }
         }
-        return batchArrayList.toArray(new SamplesBatch[0]);
+        return batchArrayList.toArray(new SampleBatch[0]);
     }
 
-    public SamplesBatch[] getNewSamples(int size) throws InterruptedException {
+    public SampleBatch[] getNewSamples(int size) throws InterruptedException {
         waitForCount = size-newToRead;
         if(waitForCount > 0) {
             synchronized (this) {

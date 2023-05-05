@@ -1,18 +1,12 @@
 package com.mkkl.hantekgui;
 
-import com.mkkl.hantekgui.protocol.OscilloscopeDevice;
+import com.mkkl.hantekgui.protocol.*;
 import com.mkkl.hantekgui.ui.chart.ChartManager;
 import com.mkkl.hantekgui.ui.chart.ScopeChart;
-import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
-import com.mkkl.hantekgui.protocol.OscilloscopeSampleRate;
 import com.mkkl.hantekgui.settings.SettingsRegistry;
-import de.gsi.chart.renderer.spi.ErrorDataSetRenderer;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
@@ -20,17 +14,20 @@ import javafx.util.Callback;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class MainWindow {
     @FXML
     public ComboBox<OscilloscopeSampleRate> sampleratebox;
     @FXML
+    public ComboBox<OscilloscopeVoltRanges> voltagerangebox;
+    @FXML
     private ScopeChart scopeChart;
 
-    private OscilloscopeCommunication scopeCommunication;
+    private List<OscilloscopeChannel> oscilloscopeChannels;
 
-    public void init(OscilloscopeCommunication scopeCommunication) throws IOException {
+    private AbstractProtocol scopeCommunication;
+
+    public void init(AbstractProtocol scopeCommunication) throws IOException {
         this.scopeCommunication = scopeCommunication;
         OscilloscopeSampleRate sampleRate = scopeCommunication.getAvailableSampleRates().stream().filter(x -> x.samplesPerSecond() == 100000).findFirst().orElseThrow();
 
@@ -40,15 +37,25 @@ public class MainWindow {
 
 
         scopeChart.setChannels(scopeCommunication.getChannels().stream().toList());
+        oscilloscopeChannels = new ArrayList<>(scopeCommunication.getChannels());
         initializeMenu();
         ChartManager chartManager = ChartManager.create(scopeCommunication, scopeChart);
     }
 
+    private boolean paused = false;
     @FXML
     protected void onHelloButtonClick() {
         //SettingsRegistry.chartFpsLimit.setValue(1f);
         //SettingsRegistry.sampleCountPerFrame.setValue(10000);
-        ChartManager.getInstance().setTimeBase(0.5f);
+        //ChartManager.getInstance().setTimeBase(0.5f);
+        if(!paused) {
+            ChartManager.getInstance().pause();
+            paused = true;
+        }
+        else {
+            ChartManager.getInstance().resume();
+            paused = false;
+        }
     }
 
     @FXML
@@ -76,5 +83,14 @@ public class MainWindow {
                             SettingsRegistry.currentSampleRate.setValue(observableValue.getValue());
                     scopeCommunication.startCapture();
                         });
+
+        List<OscilloscopeVoltRanges> voltRangesList = new ArrayList<>(scopeCommunication.getVoltageRanges());
+        voltagerangebox.setItems(FXCollections.observableList(voltRangesList));
+        voltagerangebox.getSelectionModel().selectedItemProperty().addListener(((observableValue, oscilloscopeVoltRanges, t1) -> {
+            scopeCommunication.stopCapture();
+            scopeCommunication.setVoltageRange(oscilloscopeChannels.get(0), observableValue.getValue());
+            scopeCommunication.setVoltageRange(oscilloscopeChannels.get(1), observableValue.getValue());
+            scopeCommunication.startCapture();
+        }));
     }
 }

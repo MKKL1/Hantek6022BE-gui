@@ -1,44 +1,38 @@
 package com.mkkl.hantekgui.ui.chart;
 
 import com.mkkl.hantekgui.protocol.OscilloscopeSampleRate;
-import com.mkkl.hantekgui.ui.chart.render.SampleRenderScheduler;
-import com.mkkl.hantekgui.ui.chart.render.SampleSupplier;
+import com.mkkl.hantekgui.ui.chart.render.SamplesFromCapture;
 import com.mkkl.hantekgui.ui.chart.render.SampleRenderer;
 import com.mkkl.hantekgui.settings.SettingsRegistry;
 import com.mkkl.hantekgui.capture.*;
-import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
-
-import java.io.IOException;
+import com.mkkl.hantekgui.protocol.AbstractProtocol;
 
 public class ChartManager implements AutoCloseable{
     private final ScopeChart scopeChart;
     private SamplesCapture samplesCapture = new ContinuousSampleCapture();
     private CaptureMethods captureMethod = CaptureMethods.CONTINUOUS;
-    private final SampleRenderScheduler sampleRenderScheduler;
     private final SampleRenderer sampleRenderer;
+    private final SamplesFromCapture samplesFromCapture;
+
     private final DataProcessor dataProcessor;
     private final DataReaderProcess dataReaderProcess;
-    private final SampleSupplier sampleSupplier;
-    private final OscilloscopeCommunication scopeCommunication;
+    private final AbstractProtocol scopeCommunication;
 
     private static ChartManager instance;
 
-    private ChartManager(OscilloscopeCommunication scopeCommunication, ScopeChart scopeChart) {
+    private ChartManager(AbstractProtocol scopeCommunication, ScopeChart scopeChart) {
         this.scopeCommunication = scopeCommunication;
         this.scopeChart = scopeChart;
+
         this.dataProcessor = new DataProcessor(scopeCommunication);
         this.dataReaderProcess = new DataReaderProcess(scopeCommunication, dataProcessor);
-
-        new Thread(dataProcessor).start();//TODO TEMPORARY SOLUTION
+        dataProcessor.start();
         dataReaderProcess.start();
 
-        this.sampleRenderer = new SampleRenderer(scopeChart);
-        this.sampleSupplier = new SampleSupplier(samplesCapture);
-        this.sampleRenderScheduler = new SampleRenderScheduler(sampleRenderer, sampleSupplier);
-        this.sampleRenderScheduler.start();
+        this.samplesFromCapture = new SamplesFromCapture(samplesCapture);
+        this.sampleRenderer = new SampleRenderer(scopeChart, samplesFromCapture);
 
         registerSettingListeners();
-
         refreshChart();
     }
 
@@ -54,11 +48,9 @@ public class ChartManager implements AutoCloseable{
     }
 
     public void refreshChart() {
-        this.sampleSupplier.updateSize();
-        this.sampleRenderer.setXPointsDistance(
-                SettingsRegistry.sampleCountPerFrame.getValue(),
-                SettingsRegistry.currentSampleRate.getValue().getTimeBetweenPoints());
-        this.sampleRenderScheduler.reset();
+        this.samplesFromCapture.updateSize();
+        this.sampleRenderer.updateXAxisPoints(SettingsRegistry.currentSampleRate.getValue(), SettingsRegistry.sampleCountPerFrame.getValue());
+        this.sampleRenderer.refresh();
     }
 
     public void setTimeBase(float timeBase) {
@@ -72,6 +64,14 @@ public class ChartManager implements AutoCloseable{
                 break;
             }
         }
+    }
+
+    public void pause() {
+        sampleRenderer.pause();
+    }
+
+    public void resume() {
+        sampleRenderer.resume();
     }
 
     public CaptureMethods getCaptureMethod() {
@@ -91,7 +91,7 @@ public class ChartManager implements AutoCloseable{
         this.captureMethod = captureMethod;
     }
 
-    public static ChartManager create(OscilloscopeCommunication scopeCommunication, ScopeChart scopeChart) {
+    public static ChartManager create(AbstractProtocol scopeCommunication, ScopeChart scopeChart) {
         if(instance == null) instance = new ChartManager(scopeCommunication, scopeChart);
         return instance;
     }
@@ -104,6 +104,9 @@ public class ChartManager implements AutoCloseable{
     public void close() throws Exception {
         dataReaderProcess.interrupt();
         dataReaderProcess.join();
+
+        dataProcessor.interrupt();
+        dataProcessor.join();
 
         samplesCapture.close();
     }

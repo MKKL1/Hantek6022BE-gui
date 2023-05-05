@@ -14,7 +14,6 @@
         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
     </padding>
     <top>
-        <Label fx:id="welcomeText"/>
         <Button text="Hello!" onAction="#onHelloButtonClick"/>
     </top>
 
@@ -26,6 +25,8 @@
         <VBox>
             <Label text="Samplerate"/>
             <ComboBox fx:id="sampleratebox"/>
+            <Label text="Voltage range"/>
+            <ComboBox fx:id="voltagerangebox"/>
         </VBox>
     </right>
 </BorderPane>

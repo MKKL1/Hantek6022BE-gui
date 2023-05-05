@@ -1,12 +1,11 @@
 package com.mkkl.hantekgui;
 
 import com.mkkl.hantekgui.protocol.HantekCommunication;
-import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
-import com.mkkl.hantekgui.protocol.OscilloscopeDevice;
+import com.mkkl.hantekgui.protocol.AbstractProtocol;
+import com.mkkl.hantekgui.protocol.AbstractDevice;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -16,19 +15,16 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class StartingWindow extends Application {
-    @FXML public ComboBox<OscilloscopeDevice> availableOscilloscopes;
+    @FXML public ComboBox<AbstractDevice> availableOscilloscopes;
     @FXML public Button startButton;
 
-    private OscilloscopeCommunication scopeCommunication;
+    private AbstractProtocol scopeCommunication;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -46,9 +42,9 @@ public class StartingWindow extends Application {
     @FXML
     protected void initialize() {
         scopeCommunication = new HantekCommunication();
-        Callback<ListView<OscilloscopeDevice>, ListCell<OscilloscopeDevice>> factory = x -> new ListCell<OscilloscopeDevice>() {
+        Callback<ListView<AbstractDevice>, ListCell<AbstractDevice>> factory = x -> new ListCell<AbstractDevice>() {
             @Override
-            protected void updateItem(OscilloscopeDevice item, boolean empty) {
+            protected void updateItem(AbstractDevice item, boolean empty) {
                 super.updateItem(item, empty);
                 setText(empty ? "error" : item.name());
             }
@@ -57,7 +53,7 @@ public class StartingWindow extends Application {
         availableOscilloscopes.setButtonCell(factory.call(null));
 
         try {
-            List<OscilloscopeDevice> deviceList = new ArrayList<>(scopeCommunication.getConnectedDevices());
+            List<AbstractDevice> deviceList = new ArrayList<>(scopeCommunication.getConnectedDevices());
             availableOscilloscopes.setItems(FXCollections.observableList(deviceList));
             availableOscilloscopes.setValue(deviceList.get(0));
         } catch (Exception e) {

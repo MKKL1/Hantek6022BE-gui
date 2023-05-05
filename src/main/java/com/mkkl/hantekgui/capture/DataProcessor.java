@@ -2,22 +2,22 @@ package com.mkkl.hantekgui.capture;
 
 import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
 import com.mkkl.hantekgui.AppConstants;
-import com.mkkl.hantekgui.protocol.OscilloscopeCommunication;
+import com.mkkl.hantekgui.protocol.AbstractByteBufferFormatter;
+import com.mkkl.hantekgui.protocol.AbstractProtocol;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class DataProcessor extends Thread {
     private final BlockingQueue<ByteBuffer> bufferQueue = new LinkedBlockingQueue<>(64);
-    private final ADCDataFormatter adcDataFormatter;
     private final int sampleBatchSize;
+    private final AbstractByteBufferFormatter byteBufferFormatter;
 
-    public DataProcessor(OscilloscopeCommunication oscilloscopeCommunication) {
+    public DataProcessor(AbstractProtocol oscilloscopeCommunication) {
         super("Data Processor Thread");
         this.sampleBatchSize = AppConstants.packetSize/2;
-        this.adcDataFormatter = oscilloscopeCommunication.getAdcDataFormatter();
+        this.byteBufferFormatter = oscilloscopeCommunication.getDataFormatter(DataReaderManager::fireDataReceivedEvent);
     }
 
     public void receiveData(ByteBuffer buffer) {
@@ -28,22 +28,10 @@ public class DataProcessor extends Thread {
     public void run() {
         try {
             while (!Thread.currentThread().isInterrupted()) {
-                ByteBuffer byteBuffer = bufferQueue.take();
-                int samplesRead = 0;
-                float[] ch1data = new float[sampleBatchSize];
-                float[] ch2data = new float[sampleBatchSize];
-                while(byteBuffer.remaining()>=2 && samplesRead < sampleBatchSize) {
-                    float[] samplefloat = adcDataFormatter.formatSample(byteBuffer.get(), byteBuffer.get());
-                    ch1data[samplesRead] = samplefloat[0];
-                    ch2data[samplesRead] = samplefloat[1];
-                    samplesRead++;
-                }
-                DataReaderManager.fireDataReceivedEvent(new SamplesBatch(ch1data, ch2data));
+                byteBufferFormatter.formatNext(bufferQueue.take());
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        } finally {
-
         }
     }
 }
