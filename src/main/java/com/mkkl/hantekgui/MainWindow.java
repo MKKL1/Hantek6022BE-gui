@@ -13,6 +13,7 @@ import javafx.util.Callback;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainWindow {
@@ -29,15 +30,16 @@ public class MainWindow {
 
     public void init(AbstractProtocol scopeCommunication) throws IOException {
         this.scopeCommunication = scopeCommunication;
-        OscilloscopeSampleRate sampleRate = scopeCommunication.getAvailableSampleRates().stream().filter(x -> x.samplesPerSecond() == 100000).findFirst().orElseThrow();
+        OscilloscopeSampleRate[] sampleRates = scopeCommunication.getAvailableSampleRates();
+        OscilloscopeSampleRate sampleRate = Arrays.stream(sampleRates).filter(x -> x.samplesPerSecond() == 100000).findFirst().orElseThrow();
 
         //TODO move this part to more noticeable place
         SettingsRegistry.currentSampleRate.setValue(sampleRate);
         SettingsRegistry.currentSampleRate.addValueChangeListener((oldValue, newValue) -> scopeCommunication.setSampleRate(newValue));
 
 
-        scopeChart.setChannels(scopeCommunication.getChannels().stream().toList());
-        oscilloscopeChannels = new ArrayList<>(scopeCommunication.getChannels());
+        scopeChart.setChannels(scopeCommunication.getChannels());
+        oscilloscopeChannels = new ArrayList<>(Arrays.asList(scopeCommunication.getChannels()));
         initializeMenu();
         ChartManager chartManager = ChartManager.create(scopeCommunication, scopeChart);
     }
@@ -74,7 +76,7 @@ public class MainWindow {
         sampleratebox.setCellFactory(factory);
         sampleratebox.setButtonCell(factory.call(null));
 
-        List<OscilloscopeSampleRate> sampleRateList = new ArrayList<>(scopeCommunication.getAvailableSampleRates());
+        List<OscilloscopeSampleRate> sampleRateList = new ArrayList<>(Arrays.asList(scopeCommunication.getAvailableSampleRates()));
         sampleratebox.setItems(FXCollections.observableList(sampleRateList));
         sampleratebox.getSelectionModel()
                 .selectedItemProperty()
@@ -84,7 +86,7 @@ public class MainWindow {
                     scopeCommunication.startCapture();
                         });
 
-        List<OscilloscopeVoltRanges> voltRangesList = new ArrayList<>(scopeCommunication.getVoltageRanges());
+        List<OscilloscopeVoltRanges> voltRangesList = new ArrayList<>(Arrays.asList(scopeCommunication.getVoltageRanges()));
         voltagerangebox.setItems(FXCollections.observableList(voltRangesList));
         voltagerangebox.getSelectionModel().selectedItemProperty().addListener(((observableValue, oscilloscopeVoltRanges, t1) -> {
             scopeCommunication.stopCapture();

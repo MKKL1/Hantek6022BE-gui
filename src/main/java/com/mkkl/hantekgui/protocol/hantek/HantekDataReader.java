@@ -14,7 +14,7 @@ public class HantekDataReader implements AbstractDataReader {
     private final AtomicInteger packetsInQueue = new AtomicInteger(0);
 
     public HantekDataReader(OscilloscopeHandle oscilloscopeHandle) {
-        this.cachedAsyncReader = new CachedAsyncReader(oscilloscopeHandle, 10, 10, 5);
+        this.cachedAsyncReader = new CachedAsyncReader(oscilloscopeHandle, 512, 10, 5);
     }
 
     @Override

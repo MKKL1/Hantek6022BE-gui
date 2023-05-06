@@ -2,8 +2,10 @@ package com.mkkl.hantekgui.protocol.hantek;
 
 import com.mkkl.hantekapi.Oscilloscope;
 import com.mkkl.hantekapi.OscilloscopeHandle;
+import com.mkkl.hantekapi.ScopeUtils;
 import com.mkkl.hantekapi.channel.ActiveChannels;
 import com.mkkl.hantekapi.communication.adcdata.ADCDataFormatter;
+import com.mkkl.hantekapi.constants.HantekDeviceType;
 import com.mkkl.hantekapi.constants.SampleRate;
 import com.mkkl.hantekapi.constants.VoltageRange;
 import com.mkkl.hantekapi.devicemanager.OscilloscopeManager;
@@ -17,7 +19,7 @@ public class HantekProtocol implements AbstractProtocol {
     private Oscilloscope oscilloscope;
     private OscilloscopeHandle oscilloscopeHandle;
     private boolean singleChannelMode = false;
-    private boolean[] activeChannel = new boolean[2];
+    private boolean[] activeChannel = new boolean[] {true, true};
 
     @Override
     public AbstractDevice[] getConnectedDevices() {
@@ -32,20 +34,26 @@ public class HantekProtocol implements AbstractProtocol {
         HantekDevice hantekDevice = (HantekDevice) device;
 
         oscilloscope = hantekDevice.getHantekDeviceRecord().oscilloscope();
+        try {
+            //TODO flash firmware in chosen device
+            oscilloscope = ScopeUtils.getAndFlashFirmware(HantekDeviceType.DSO6022BE);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         oscilloscopeHandle = oscilloscope.setup();
     }
 
     @Override
     public OscilloscopeChannel[] getChannels() {
         ArrayList<OscilloscopeChannel> channels = new ArrayList<>();
-        oscilloscopeHandle.getChannels().forEach(x -> channels.add(new OscilloscopeChannel(x.getId().getChannelId(), x.toString())));
+        oscilloscopeHandle.getChannels().forEach(x -> channels.add(new OscilloscopeChannel(x.getId().getChannelId(), "Channel " + x.getId().getChannelId())));
         return channels.toArray(new OscilloscopeChannel[0]);
     }
 
     @Override
     public OscilloscopeSampleRate[] getAvailableSampleRates() {
         return Arrays.stream(SampleRate.values())
-                .filter(x -> x.isSingleChannel() && singleChannelMode)
+                .filter(x -> !x.isSingleChannel() || singleChannelMode)
                 .map(sampleRate -> new OscilloscopeSampleRate(sampleRate.getSampleRateId(), sampleRate.getSampleCount()))
                 .toArray(OscilloscopeSampleRate[]::new);
     }

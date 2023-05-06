@@ -5,6 +5,7 @@ import com.mkkl.hantekgui.capture.SampleBatch;
 import com.mkkl.hantekgui.protocol.FormatterListener;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import static com.mkkl.hantekgui.AppConstants.sampleBatchSize;
 
@@ -35,5 +36,6 @@ public class DoubleModeFormatter implements FormatterMode {
                 ch2data = new float[sampleBatchSize];
             }
         }
+        System.out.println(Arrays.toString(ch1data));
     }
 }

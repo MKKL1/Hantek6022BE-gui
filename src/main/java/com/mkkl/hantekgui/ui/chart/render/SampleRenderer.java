@@ -37,8 +37,9 @@ public class SampleRenderer {
     }
 
     private void renderSamples(SampleBatch sampleBatch) {
-        scopeChart.getDataSetByChannelId(0).set(xvalues, sampleBatch.getCh1Data());
-        scopeChart.getDataSetByChannelId(1).set(xvalues, sampleBatch.getCh2Data());
+        for (int i = 0; i < 2; i++) {
+            scopeChart.getDataSetByChannelId(i).set(xvalues, sampleBatch.getChannelData(i));
+        }
     }
 
 }

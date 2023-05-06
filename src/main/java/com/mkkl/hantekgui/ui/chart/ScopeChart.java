@@ -34,10 +34,10 @@ public class ScopeChart extends XYChart {
         //renderer1.getDatasets().addAll(new CosineFunction("cos", 500));
     }
 
-    public void setChannels(List<OscilloscopeChannel> channels) {
-        channelDataSets = new FloatDataSet[channels.size()];
+    public void setChannels(OscilloscopeChannel[] channels) {
+        channelDataSets = new FloatDataSet[channels.length];
         for(OscilloscopeChannel channel : channels) {
-            channelDataSets[channel.id()] = new FloatDataSet(channel.name());
+            channelDataSets[channel.getId()] = new FloatDataSet(channel.getName());
         }
         errorDataSetRenderer.getDatasets().addAll(channelDataSets);
     }

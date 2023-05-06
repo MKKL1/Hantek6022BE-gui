@@ -1,8 +1,8 @@
 package com.mkkl.hantekgui;
 
-import com.mkkl.hantekgui.protocol.HantekCommunication;
 import com.mkkl.hantekgui.protocol.AbstractProtocol;
 import com.mkkl.hantekgui.protocol.AbstractDevice;
+import com.mkkl.hantekgui.protocol.hantek.HantekProtocol;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class StartingWindow extends Application {
@@ -41,19 +42,19 @@ public class StartingWindow extends Application {
 
     @FXML
     protected void initialize() {
-        scopeCommunication = new HantekCommunication();
+        scopeCommunication = new HantekProtocol();
         Callback<ListView<AbstractDevice>, ListCell<AbstractDevice>> factory = x -> new ListCell<AbstractDevice>() {
             @Override
             protected void updateItem(AbstractDevice item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty ? "error" : item.name());
+                setText(empty ? "error" : item.getName());
             }
         };
         availableOscilloscopes.setCellFactory(factory);
         availableOscilloscopes.setButtonCell(factory.call(null));
 
         try {
-            List<AbstractDevice> deviceList = new ArrayList<>(scopeCommunication.getConnectedDevices());
+            List<AbstractDevice> deviceList = new ArrayList<>(Arrays.asList(scopeCommunication.getConnectedDevices()));
             availableOscilloscopes.setItems(FXCollections.observableList(deviceList));
             availableOscilloscopes.setValue(deviceList.get(0));
         } catch (Exception e) {

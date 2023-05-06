@@ -19,7 +19,7 @@ public class SampleBatch {
         for (int i = 0; i < channelsCount; i++) {
             ArrayList<float[]> arrayList = new ArrayList<>();
             arrayList.add(channelData[i]);
-            data.set(i, arrayList);
+            data.add(arrayList);
         }
         length = length1;
     }
@@ -67,6 +67,16 @@ public class SampleBatch {
         }
 
         length += sampleBatch.length;
+    }
+
+    public float[] getChannelData(int channelId) {
+        float[] alldata = new float[length];
+        int pos = 0;
+        for(float[] samples : data.get(channelId)) {
+            System.arraycopy(samples, 0, alldata, pos, samples.length);
+            pos += samples.length;
+        }
+        return alldata;
     }
 
     public Iterator<Float> getChannelDataIterator(int channelId) {
