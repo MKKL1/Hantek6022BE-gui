@@ -12,8 +12,8 @@ public class SettingsAttribute<T> {
         this.value = null;
     }
 
-    public SettingsAttribute(T value) {
-        this.value = value;
+    public SettingsAttribute(T defaultValue) {
+        this.value = defaultValue;
     }
 
     public void addValueChangeListener(ValueChangeListener<T> listener) {

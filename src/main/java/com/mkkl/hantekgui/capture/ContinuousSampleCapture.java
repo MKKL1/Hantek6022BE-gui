@@ -7,7 +7,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class ContinuousSampleCapture implements SamplesCapture {
+public class ContinuousSampleCapture implements SampleCapture {
     private final BlockingQueue<SampleRequest> requestQueue = new LinkedBlockingQueue<>();
     private final CaptureHistory captureHistory = CaptureHistory.getInstance();
     private final Thread thread;
@@ -20,11 +20,11 @@ public class ContinuousSampleCapture implements SamplesCapture {
                     SampleBatch[] samples = captureHistory.getNewSamples(batchesToRead);
 
                     SampleBatch sampleBatch = samples[0];
-                    int toread = sampleRequest.countToRead- sampleBatch.length;
+                    int toread = sampleRequest.countToRead - sampleBatch.length;
                     for(int i = 1; i < samples.length && toread > 0; i++) {
                         SampleBatch cbatch = samples[i];
-                        if(toread > cbatch.length) sampleBatch.concatenate(cbatch);
-                        else sampleBatch.concatenate(cbatch, toread);
+                        if(toread > cbatch.length) sampleBatch.addSamples(cbatch);
+                        else sampleBatch.addSamples(cbatch, toread);
                         toread -= cbatch.length;
                     }
                     if(sampleBatch.length != sampleRequest.countToRead) {

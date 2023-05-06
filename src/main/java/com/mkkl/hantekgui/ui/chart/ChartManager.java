@@ -9,7 +9,7 @@ import com.mkkl.hantekgui.protocol.AbstractProtocol;
 
 public class ChartManager implements AutoCloseable{
     private final ScopeChart scopeChart;
-    private SamplesCapture samplesCapture = new ContinuousSampleCapture();
+    private SampleCapture samplesCapture = new ContinuousSampleCapture();
     private CaptureMethods captureMethod = CaptureMethods.CONTINUOUS;
     private final SampleRenderer sampleRenderer;
     private final SamplesFromCapture samplesFromCapture;

@@ -1,16 +1,16 @@
 package com.mkkl.hantekgui.ui.chart.render;
 
 import com.mkkl.hantekgui.capture.SampleBatch;
-import com.mkkl.hantekgui.capture.SamplesCapture;
+import com.mkkl.hantekgui.capture.SampleCapture;
 import com.mkkl.hantekgui.settings.SettingsRegistry;
 
 import java.util.concurrent.CompletableFuture;
 
 public class SamplesFromCapture implements SampleDataSource {
     private int size;
-    private final SamplesCapture samplesCapture;
+    private final SampleCapture samplesCapture;
 
-    public SamplesFromCapture(SamplesCapture samplesCapture) {
+    public SamplesFromCapture(SampleCapture samplesCapture) {
         this.samplesCapture = samplesCapture;
         this.size = SettingsRegistry.sampleCountPerFrame.getValue();
     }

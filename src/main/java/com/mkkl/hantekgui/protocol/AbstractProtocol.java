@@ -14,5 +14,5 @@ public interface AbstractProtocol {
     void stopCapture();
 
     AbstractDataReader getDataReader();
-    AbstractByteBufferFormatter getDataFormatter(FormatterListener formatterListener);
+    AbstractBufferFormatter getDataFormatter(FormatterListener formatterListener);
 }

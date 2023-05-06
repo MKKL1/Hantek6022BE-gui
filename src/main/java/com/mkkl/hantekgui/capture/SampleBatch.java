@@ -1,52 +1,110 @@
 package com.mkkl.hantekgui.capture;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class SampleBatch {
-    private float[] ch1Data;
-    private float[] ch2Data;
+    private final ArrayList<ArrayList<float[]>> data;
     public int length;
+    private final int channelsCount;
 
-    public SampleBatch(float[] ch1Data, float[] ch2Data) {
-        this.ch1Data = ch1Data;
-        this.ch2Data = ch2Data;
-        if (ch1Data.length != ch2Data.length) throw new RuntimeException("Array lengths are not equal");
-        this.length = ch1Data.length;
+    public SampleBatch(float[]... channelData) {
+        int length1 = channelData[0].length;
+        channelsCount = channelData.length;
+        for(int i = 1; i < channelsCount; i++)
+            if(length1 != channelData[i].length) throw new RuntimeException("Array lengths are not equal");
+
+        data = new ArrayList<>(channelsCount);
+        for (int i = 0; i < channelsCount; i++) {
+            ArrayList<float[]> arrayList = new ArrayList<>();
+            arrayList.add(channelData[i]);
+            data.set(i, arrayList);
+        }
+        length = length1;
     }
 
-    public float[] getCh1Data() {
-        return ch1Data;
+    public void addSamples(float[]... channelData) {
+        if (channelData.length != channelsCount) throw new RuntimeException("Channel count is not equal");
+        int length1 = channelData[0].length;
+        for(int i = 1; i < channelsCount; i++)
+            if(length1 != channelData[i].length) throw new RuntimeException("Array lengths are not equal");
+
+        for (int i = 0; i < channelsCount; i++) {
+            data.get(i).add(channelData[i]);
+        }
+        length += length1;
     }
 
-    public float[] getCh2Data() {
-        return ch2Data;
+    public void addSamples(SampleBatch sampleBatch) {
+        if (sampleBatch.channelsCount != channelsCount) throw new RuntimeException("Channel count is not equal");
+
+        for (int i = 0; i < channelsCount; i++) {
+            data.get(i).addAll(sampleBatch.data.get(i));
+        }
+
+        length += sampleBatch.length;
     }
 
-    public void concatenate(SampleBatch sampleBatch2, int sizeToAdd) {
-        int oldlength = length;
-        ch1Data = Arrays.copyOf(ch1Data, ch1Data.length + sizeToAdd);
-        ch2Data = Arrays.copyOf(ch2Data, ch2Data.length + sizeToAdd);
-        length = ch1Data.length;
-        System.arraycopy(sampleBatch2.ch1Data, 0, ch1Data, oldlength, sizeToAdd);
-        System.arraycopy(sampleBatch2.ch2Data, 0, ch2Data, oldlength, sizeToAdd);
+    public void addSamples(SampleBatch sampleBatch, int lengthToCopy) {
+        if (sampleBatch.channelsCount != channelsCount) throw new RuntimeException("Channel count is not equal");
+
+        int lengthRemaining = lengthToCopy;
+        for (int i = 0; i < channelsCount; i++) {
+            ArrayList<float[]> currentChannel = data.get(i);
+
+            for (float[] dataToCopy : sampleBatch.data.get(i)) {
+                if (dataToCopy.length <= lengthRemaining) {
+                    currentChannel.add(dataToCopy);
+                    lengthRemaining -= dataToCopy.length;
+                } else {
+                    float[] dataShortened = Arrays.copyOf(dataToCopy, lengthRemaining);
+                    currentChannel.add(dataShortened);
+                    lengthRemaining = 0;
+                }
+                if (lengthRemaining <= 0) break;
+            }
+        }
+
+        length += sampleBatch.length;
     }
 
-    public void concatenate(SampleBatch sampleBatch2) {
-        concatenate(sampleBatch2, sampleBatch2.length);
+    public Iterator<Float> getChannelDataIterator(int channelId) {
+        ArrayList<float[]> channelData = data.get(channelId);
+        return new BatchChannelIterator(channelData);
+    }
+
+
+}
+
+class BatchChannelIterator implements Iterator<Float> {
+    private final ArrayList<float[]> channelData;
+    private final int channelDataLength;
+    private float[] currentArray;
+    int currentListNumber = 0;
+    int currentArrayNumber = 0;
+    public BatchChannelIterator(ArrayList<float[]> channelData) {
+        this.channelData = channelData;
+        currentArray = channelData.get(0);
+        channelDataLength = channelData.size();
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SampleBatch that = (SampleBatch) o;
-        return Arrays.equals(ch1Data, that.ch1Data) && Arrays.equals(ch2Data, that.ch2Data);
+    public boolean hasNext() {
+        if(currentArrayNumber+1 >= currentArray.length) {
+            return currentListNumber + 1 < channelDataLength;
+        }
+        return true;
     }
 
     @Override
-    public int hashCode() {
-        int result = Arrays.hashCode(ch1Data);
-        result = 31 * result + Arrays.hashCode(ch2Data);
-        return result;
+    public Float next() {
+        float currentValue = currentArray[currentArrayNumber];
+        currentArrayNumber++;
+        if(currentArrayNumber >= currentArray.length) {
+            currentListNumber++;
+            currentArray = channelData.get(currentListNumber);
+        }
+        return currentValue;
     }
 }

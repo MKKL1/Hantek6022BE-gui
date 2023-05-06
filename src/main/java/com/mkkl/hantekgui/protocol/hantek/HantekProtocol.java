@@ -90,7 +90,7 @@ public class HantekProtocol implements AbstractProtocol {
     }
 
     @Override
-    public AbstractByteBufferFormatter getDataFormatter(FormatterListener formatterListener) {
-        return new HantekFormatter(ADCDataFormatter.create(oscilloscopeHandle.getChannelManager()), formatterListener);
+    public AbstractBufferFormatter getDataFormatter(FormatterListener formatterListener) {
+        return new HantekFormatter(oscilloscopeHandle, formatterListener);
     }
 }
