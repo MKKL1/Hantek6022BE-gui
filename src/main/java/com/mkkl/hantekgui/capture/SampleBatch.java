@@ -49,8 +49,8 @@ public class SampleBatch {
     public void addSamples(SampleBatch sampleBatch, int lengthToCopy) {
         if (sampleBatch.channelsCount != channelsCount) throw new RuntimeException("Channel count is not equal");
 
-        int lengthRemaining = lengthToCopy;
         for (int i = 0; i < channelsCount; i++) {
+            int lengthRemaining = lengthToCopy;
             ArrayList<float[]> currentChannel = data.get(i);
 
             for (float[] dataToCopy : sampleBatch.data.get(i)) {
@@ -66,7 +66,7 @@ public class SampleBatch {
             }
         }
 
-        length += sampleBatch.length;
+        length += lengthToCopy;
     }
 
     public float[] getChannelData(int channelId) {
