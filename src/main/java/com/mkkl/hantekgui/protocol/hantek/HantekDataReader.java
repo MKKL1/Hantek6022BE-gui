@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class HantekDataReader implements AbstractDataReader {
     private final CachedAsyncReader cachedAsyncReader;
     private final AtomicInteger packetsInQueue = new AtomicInteger(0);
+    final Object object = new Object();//TODO find clean way to synchronize
 
     public HantekDataReader(OscilloscopeHandle oscilloscopeHandle) {
         this.cachedAsyncReader = new CachedAsyncReader(oscilloscopeHandle, 512, 10, 5);
@@ -22,11 +23,11 @@ public class HantekDataReader implements AbstractDataReader {
         cachedAsyncReader.registerListener(new BufferedCallback(false) {
             @Override
             public void onDataReceived(ByteBuffer byteBuffer) {
-                synchronized (this) {
-                    notifyAll();
-                }
                 dataReaderListener.receivePacket(byteBuffer);
                 packetsInQueue.decrementAndGet();
+                synchronized (object) {
+                    object.notifyAll();
+                }
             }
         });
     }
@@ -34,8 +35,8 @@ public class HantekDataReader implements AbstractDataReader {
     @Override
     public void loop() throws InterruptedException {
         while(packetsInQueue.get() > 10)
-            synchronized (this) {
-                wait();
+            synchronized (object) {
+                object.wait();
             }
         cachedAsyncReader.read();
         packetsInQueue.incrementAndGet();

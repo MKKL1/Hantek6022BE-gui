@@ -36,6 +36,5 @@ public class DoubleModeFormatter implements FormatterMode {
                 ch2data = new float[sampleBatchSize];
             }
         }
-        System.out.println(Arrays.toString(ch1data));
     }
 }
