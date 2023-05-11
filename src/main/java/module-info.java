@@ -8,7 +8,6 @@ module com.mkkl.hantekgui.hantekgui {
     requires de.gsi.chartfx.dataset;
     requires org.slf4j;
     requires hantekapi;
-    requires usb.api;
     requires org.apache.commons.lang3;
     requires org.apache.commons.collections4;
 

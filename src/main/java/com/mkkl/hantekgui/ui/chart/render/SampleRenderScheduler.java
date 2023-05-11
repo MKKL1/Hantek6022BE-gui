@@ -6,6 +6,8 @@ import javafx.animation.AnimationTimer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class SampleRenderScheduler {
     private SampleBatch sampleBatch;
@@ -14,6 +16,7 @@ public class SampleRenderScheduler {
     private final AnimationTimer timer;
     private final SampleDataSource sampleDataSource;
     private boolean started = false;
+    private long timeoutMS = 5000;
 
     private final List<SamplesRenderedListener> renderedListenerList = new ArrayList<>();
 
@@ -40,7 +43,7 @@ public class SampleRenderScheduler {
     }
 
     private void requestData() {
-        sampleDataSource.requestData().thenAccept(samples -> {
+        sampleDataSource.requestData().orTimeout(timeoutMS, TimeUnit.MILLISECONDS).thenAccept(samples -> {
             sampleBatch = samples;
             shouldUpdate = true;
         });
@@ -56,6 +59,14 @@ public class SampleRenderScheduler {
 
     public void unregisterListener(SamplesRenderedListener listener) {
         renderedListenerList.remove(listener);
+    }
+
+    public long getTimeoutMS() {
+        return timeoutMS;
+    }
+
+    public void setTimeoutMS(long timeoutMS) {
+        this.timeoutMS = timeoutMS;
     }
 
     public void reset() {

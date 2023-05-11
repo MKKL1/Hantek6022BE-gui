@@ -3,6 +3,7 @@ package com.mkkl.hantekgui.protocol.hantek;
 import com.mkkl.hantekapi.OscilloscopeHandle;
 import com.mkkl.hantekapi.communication.readers.BufferedCallback;
 import com.mkkl.hantekapi.communication.readers.async.CachedAsyncReader;
+import com.mkkl.hantekgui.AppConstants;
 import com.mkkl.hantekgui.protocol.AbstractDataReader;
 import com.mkkl.hantekgui.protocol.DataReaderListener;
 
@@ -15,12 +16,12 @@ public class HantekDataReader implements AbstractDataReader {
     final Object object = new Object();//TODO find clean way to synchronize
 
     public HantekDataReader(OscilloscopeHandle oscilloscopeHandle) {
-        this.cachedAsyncReader = new CachedAsyncReader(oscilloscopeHandle, 512, 10, 5);
+        this.cachedAsyncReader = new CachedAsyncReader(oscilloscopeHandle, AppConstants.packetSize, 20, 10);
     }
 
     @Override
     public void initialize(DataReaderListener dataReaderListener) {
-        cachedAsyncReader.registerListener(new BufferedCallback(false) {
+        cachedAsyncReader.registerListener(new BufferedCallback() {
             @Override
             public void onDataReceived(ByteBuffer byteBuffer) {
                 dataReaderListener.receivePacket(byteBuffer);

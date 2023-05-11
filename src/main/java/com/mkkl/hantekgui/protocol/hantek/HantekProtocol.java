@@ -37,7 +37,7 @@ public class HantekProtocol implements AbstractProtocol {
         try {
             //TODO flash firmware in chosen device
             oscilloscope = ScopeUtils.getAndFlashFirmware(HantekDeviceType.DSO6022BE);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         oscilloscopeHandle = oscilloscope.setup();

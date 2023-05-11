@@ -3,6 +3,7 @@ package com.mkkl.hantekgui.capture;
 import com.mkkl.hantekgui.AppConstants;
 import com.mkkl.hantekgui.settings.SettingsRegistry;
 
+import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -17,8 +18,8 @@ public class ContinuousSampleCapture implements SampleCapture {
                 try {
                     SampleRequest sampleRequest = requestQueue.take();
                     int batchesToRead = (int) Math.ceil((float)sampleRequest.countToRead/AppConstants.sampleBatchSize);
-                    SampleBatch[] samples = captureHistory.getNewSamples(batchesToRead);
-
+                    SampleBatch[] samples = captureHistory.getSamplesOrWait(batchesToRead);
+                    //System.out.println(Arrays.toString(samples));
                     SampleBatch sampleBatch = samples[0];
                     int toread = sampleRequest.countToRead - sampleBatch.length;
                     for(int i = 1; i < samples.length && toread > 0; i++) {
