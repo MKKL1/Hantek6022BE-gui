@@ -1,7 +1,7 @@
 package com.mkkl.hantekgui.capture;
 
 import com.mkkl.hantekgui.AppConstants;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
+import com.mkkl.hantekgui.CircularFifoQueue;
 
 import java.util.*;
 
@@ -46,12 +46,12 @@ public class CaptureHistory {
     public SampleBatch[] getSamples(int size) {
         ArrayList<SampleBatch> batchArrayList = new ArrayList<>(size);
         synchronized (circularFifoQueue) {
-            Iterator<SampleBatch> iterator = circularFifoQueue.iterator();//TODO reverse iterator
+            Iterator<SampleBatch> iterator = circularFifoQueue.descendingIterator();
             for (int i = 0; i < size; i++) {
                 batchArrayList.add(iterator.next());
             }
         }
-        //Collections.reverse(batchArrayList);
+        Collections.reverse(batchArrayList);
         return batchArrayList.toArray(new SampleBatch[0]);
     }
 
