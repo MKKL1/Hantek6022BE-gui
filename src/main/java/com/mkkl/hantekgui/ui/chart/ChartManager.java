@@ -10,6 +10,7 @@ import com.mkkl.hantekgui.protocol.AbstractProtocol;
 public class ChartManager {
     private final ScopeChart scopeChart;
 
+    private final CaptureMain captureMain;
     private final AbstractProtocol scopeCommunication;
     private final SampleRenderer sampleRenderer;
     private static ChartManager instance;
@@ -17,7 +18,8 @@ public class ChartManager {
     private ChartManager(AbstractProtocol scopeCommunication, ScopeChart scopeChart) {
         this.scopeCommunication = scopeCommunication;
         this.scopeChart = scopeChart;
-        this.sampleRenderer = new SampleRenderer(scopeChart, samplesFromCapture);
+        this.captureMain = new CaptureMain(scopeCommunication);
+        this.sampleRenderer = new SampleRenderer(scopeChart, captureMain.getSampleDataSource());
 
         registerSettingListeners();
         refreshChart();

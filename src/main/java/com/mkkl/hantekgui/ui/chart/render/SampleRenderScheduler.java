@@ -7,7 +7,6 @@ import javafx.animation.AnimationTimer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class SampleRenderScheduler {
     private SampleBatch sampleBatch;
@@ -18,11 +17,10 @@ public class SampleRenderScheduler {
     private boolean started = false;
     private long timeoutMS = 5000;
 
-    private final List<SamplesRenderedListener> renderedListenerList = new ArrayList<>();
+    private final List<RenderSchedulerListener> renderedListenerList = new ArrayList<>();
 
     public SampleRenderScheduler(SampleDataSource sampleDataSource) {
         this.sampleDataSource = sampleDataSource;
-        //calculateUpdateTime(SettingsRegistry.chartFpsLimit.getValue());
         SettingsRegistry.chartFpsLimit.addAndActiveListener((oldValue, newValue) -> calculateUpdateTime(newValue));
 
         final long[] nextUpdate = {0};
@@ -53,11 +51,11 @@ public class SampleRenderScheduler {
         updateTime = (long) ((1/fpsLimit)*1e9);
     }
 
-    public void registerListener(SamplesRenderedListener listener) {
+    public void registerListener(RenderSchedulerListener listener) {
         renderedListenerList.add(listener);
     }
 
-    public void unregisterListener(SamplesRenderedListener listener) {
+    public void unregisterListener(RenderSchedulerListener listener) {
         renderedListenerList.remove(listener);
     }
 

@@ -4,7 +4,7 @@ import com.mkkl.hantekgui.capture.SampleBatch;
 import com.mkkl.hantekgui.protocol.OscilloscopeSampleRate;
 import com.mkkl.hantekgui.ui.chart.ScopeChart;
 
-public class SampleRenderer {
+public class SampleRenderer implements RenderSchedulerListener {
     private final ScopeChart scopeChart;
     private final SampleRenderScheduler sampleRenderScheduler;
     private float[] xvalues;
@@ -12,7 +12,7 @@ public class SampleRenderer {
     public SampleRenderer(ScopeChart scopeChart, SampleDataSource sampleDataSource) {
         this.scopeChart = scopeChart;
         sampleRenderScheduler = new SampleRenderScheduler(sampleDataSource);
-        sampleRenderScheduler.registerListener(this::renderSamples);
+        sampleRenderScheduler.registerListener(this);
         sampleRenderScheduler.start();
     }
 
@@ -36,10 +36,10 @@ public class SampleRenderer {
         }
     }
 
-    private void renderSamples(SampleBatch sampleBatch) {
+    @Override
+    public void onRenderTick(SampleBatch batchToRender) {
         for (int i = 0; i < 2; i++) {
-            scopeChart.getDataSetByChannelId(i).set(xvalues, sampleBatch.getChannelData(i));
+            scopeChart.getDataSetByChannelId(i).set(xvalues, batchToRender.getChannelData(i));
         }
     }
-
 }

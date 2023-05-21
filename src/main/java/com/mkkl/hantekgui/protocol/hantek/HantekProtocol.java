@@ -41,6 +41,9 @@ public class HantekProtocol implements AbstractProtocol {
             e.printStackTrace();
         }
         oscilloscopeHandle = oscilloscope.setup();
+        //oscilloscopeHandle.setCalibration(oscilloscopeHandle.readCalibrationValues());
+//        oscilloscopeHandle.getChannel(0).setProbeAttenuation(10);
+//        oscilloscopeHandle.getChannel(1).setProbeAttenuation(10);
     }
 
     @Override
