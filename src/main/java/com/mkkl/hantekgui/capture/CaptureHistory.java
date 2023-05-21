@@ -5,22 +5,20 @@ import com.mkkl.hantekgui.CircularFifoQueue;
 
 import java.util.*;
 
-public class CaptureHistory {
+public class CaptureHistory implements SampleReceiver{
     private final CircularFifoQueue<SampleBatch> circularFifoQueue;
     private final int queueSize;
     private int newToRead = 0;
 
     private int waitForCount = 0;
 
-    private static CaptureHistory instance;
-
     public CaptureHistory(int size) {
         circularFifoQueue = new CircularFifoQueue<>(size);
         this.queueSize = size;
-        DataReaderManager.register(this::addSamples);
     }
 
-    private void addSamples(SampleBatch sampleBatch) {
+    @Override
+    public void onSamplesReceived(SampleBatch sampleBatch) {
         synchronized (circularFifoQueue) {
             circularFifoQueue.add(sampleBatch);
         }
@@ -78,10 +76,5 @@ public class CaptureHistory {
 
     public int getCurrentQueueSize() {
         return circularFifoQueue.size();
-    }
-
-    public static CaptureHistory getInstance() {
-        if(instance == null) instance = new CaptureHistory(AppConstants.captureHistorySize);
-        return instance;
     }
 }

@@ -3,16 +3,18 @@ package com.mkkl.hantekgui.capture;
 import com.mkkl.hantekgui.AppConstants;
 import com.mkkl.hantekgui.settings.SettingsRegistry;
 
-import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class ContinuousSampleCapture implements SampleCapture {
     private final BlockingQueue<SampleRequest> requestQueue = new LinkedBlockingQueue<>();
-    private final CaptureHistory captureHistory = CaptureHistory.getInstance();
+    private final CaptureHistory captureHistory;
     private final Thread thread;
-    public ContinuousSampleCapture() {
+    public ContinuousSampleCapture(CaptureHistory captureHistory) {
+        this.captureHistory = captureHistory;
+
+
         thread = new Thread(() -> {
             while(!Thread.currentThread().isInterrupted()) {
                 try {

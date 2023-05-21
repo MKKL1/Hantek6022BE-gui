@@ -7,29 +7,16 @@ import com.mkkl.hantekgui.settings.SettingsRegistry;
 import com.mkkl.hantekgui.capture.*;
 import com.mkkl.hantekgui.protocol.AbstractProtocol;
 
-public class ChartManager implements AutoCloseable{
+public class ChartManager {
     private final ScopeChart scopeChart;
-    private SampleCapture samplesCapture = new ContinuousSampleCapture();
-    private CaptureMethods captureMethod = CaptureMethods.CONTINUOUS;
-    private final SampleRenderer sampleRenderer;
-    private final SamplesFromCapture samplesFromCapture;
 
-    private final DataProcessor dataProcessor;
-    private final DataReaderProcess dataReaderProcess;
     private final AbstractProtocol scopeCommunication;
-
+    private final SampleRenderer sampleRenderer;
     private static ChartManager instance;
 
     private ChartManager(AbstractProtocol scopeCommunication, ScopeChart scopeChart) {
         this.scopeCommunication = scopeCommunication;
         this.scopeChart = scopeChart;
-
-        this.dataProcessor = new DataProcessor(scopeCommunication);
-        this.dataReaderProcess = new DataReaderProcess(scopeCommunication, dataProcessor);
-        dataProcessor.start();
-        dataReaderProcess.start();
-
-        this.samplesFromCapture = new SamplesFromCapture(samplesCapture);
         this.sampleRenderer = new SampleRenderer(scopeChart, samplesFromCapture);
 
         registerSettingListeners();
@@ -37,18 +24,11 @@ public class ChartManager implements AutoCloseable{
     }
 
     private void registerSettingListeners() {
-        SettingsRegistry.sampleCountPerFrame.addValueChangeListener((oldValue, newValue) -> {
-            refreshChart();
-        });
-
-        SettingsRegistry.currentSampleRate.addValueChangeListener((oldValue, newValue) -> {
-            System.out.println("New sample rate " + newValue.toString());
-            refreshChart();
-        });
+        SettingsRegistry.sampleCountPerFrame.addValueChangeListener((oldValue, newValue) -> refreshChart());
+        SettingsRegistry.currentSampleRate.addValueChangeListener((oldValue, newValue) -> refreshChart());
     }
 
     public void refreshChart() {
-        this.samplesFromCapture.updateSize();
         this.sampleRenderer.updateXAxisPoints(SettingsRegistry.currentSampleRate.getValue(), SettingsRegistry.sampleCountPerFrame.getValue());
         this.sampleRenderer.refresh();
     }
@@ -74,23 +54,6 @@ public class ChartManager implements AutoCloseable{
         sampleRenderer.resume();
     }
 
-    public CaptureMethods getCaptureMethod() {
-        return captureMethod;
-    }
-
-    public void setCaptureMethod(CaptureMethods captureMethod) {
-        try {
-            samplesCapture.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        switch (captureMethod) {
-            case CONTINUOUS -> samplesCapture = new ContinuousSampleCapture();
-            case SINGLE -> System.out.println("not implemented");//TODO implement
-        }
-        this.captureMethod = captureMethod;
-    }
-
     public static ChartManager create(AbstractProtocol scopeCommunication, ScopeChart scopeChart) {
         if(instance == null) instance = new ChartManager(scopeCommunication, scopeChart);
         return instance;
@@ -100,14 +63,5 @@ public class ChartManager implements AutoCloseable{
         return instance;
     }
 
-    @Override
-    public void close() throws Exception {
-        dataReaderProcess.interrupt();
-        dataReaderProcess.join();
 
-        dataProcessor.interrupt();
-        dataProcessor.join();
-
-        samplesCapture.close();
-    }
 }

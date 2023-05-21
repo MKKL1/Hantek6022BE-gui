@@ -3,6 +3,7 @@ package com.mkkl.hantekgui.ui.chart.render;
 import com.mkkl.hantekgui.capture.SampleBatch;
 import com.mkkl.hantekgui.capture.SampleCapture;
 import com.mkkl.hantekgui.settings.SettingsRegistry;
+import com.mkkl.hantekgui.settings.ValueChangeListener;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -12,11 +13,7 @@ public class SamplesFromCapture implements SampleDataSource {
 
     public SamplesFromCapture(SampleCapture samplesCapture) {
         this.samplesCapture = samplesCapture;
-        this.size = SettingsRegistry.sampleCountPerFrame.getValue();
-    }
-
-    public void updateSize() {
-        this.size = SettingsRegistry.sampleCountPerFrame.getValue();
+        SettingsRegistry.sampleCountPerFrame.addAndActiveListener((oldValue, newValue) -> size = newValue);
     }
 
     @Override
