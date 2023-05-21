@@ -43,7 +43,7 @@ public class StartingWindow extends Application {
     @FXML
     protected void initialize() {
         scopeCommunication = new HantekProtocol();
-        Callback<ListView<AbstractDevice>, ListCell<AbstractDevice>> factory = x -> new ListCell<AbstractDevice>() {
+        Callback<ListView<AbstractDevice>, ListCell<AbstractDevice>> factory = x -> new ListCell<>() {
             @Override
             protected void updateItem(AbstractDevice item, boolean empty) {
                 super.updateItem(item, empty);

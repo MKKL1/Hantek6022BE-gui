@@ -1,5 +1,8 @@
 package com.mkkl.hantekgui;
 
+import com.mkkl.hantekgui.commands.CommandDispatcher;
+import com.mkkl.hantekgui.commands.SetSampleRateCmd;
+import com.mkkl.hantekgui.commands.SetVoltageRangeCmd;
 import com.mkkl.hantekgui.protocol.*;
 import com.mkkl.hantekgui.ui.chart.ChartManager;
 import com.mkkl.hantekgui.ui.chart.ScopeChart;
@@ -30,17 +33,18 @@ public class MainWindow {
 
     public void init(AbstractProtocol scopeCommunication) throws IOException {
         this.scopeCommunication = scopeCommunication;
+
+        CommandDispatcher.getInstance();//Initialize before use
+
         OscilloscopeSampleRate[] sampleRates = scopeCommunication.getAvailableSampleRates();
         OscilloscopeSampleRate sampleRate = Arrays.stream(sampleRates).filter(x -> x.samplesPerSecond() == 100000).findFirst().orElseThrow();
-
-        //TODO move this part to more noticeable place
-        SettingsRegistry.currentSampleRate.setValue(sampleRate);
-        SettingsRegistry.currentSampleRate.addValueChangeListener((oldValue, newValue) -> scopeCommunication.setSampleRate(newValue));
+        CommandDispatcher.getInstance().submitCommand(new SetSampleRateCmd(scopeCommunication, sampleRate));
 
 
         scopeChart.setChannels(scopeCommunication.getChannels());
         oscilloscopeChannels = new ArrayList<>(Arrays.asList(scopeCommunication.getChannels()));
         initializeMenu();
+
         ChartManager chartManager = ChartManager.create(scopeCommunication, scopeChart);
     }
 
@@ -76,23 +80,17 @@ public class MainWindow {
         sampleratebox.setCellFactory(factory);
         sampleratebox.setButtonCell(factory.call(null));
 
-        List<OscilloscopeSampleRate> sampleRateList = new ArrayList<>(Arrays.asList(scopeCommunication.getAvailableSampleRates()));
-        sampleratebox.setItems(FXCollections.observableList(sampleRateList));
+        sampleratebox.setItems(FXCollections.observableList(Arrays.asList(scopeCommunication.getAvailableSampleRates())));
         sampleratebox.getSelectionModel()
                 .selectedItemProperty()
                 .addListener((observableValue, oscilloscopeSampleRate, t1) -> {
-                    scopeCommunication.stopCapture();
-                            SettingsRegistry.currentSampleRate.setValue(observableValue.getValue());
-                    scopeCommunication.startCapture();
-                        });
+                    CommandDispatcher.getInstance().submitCommand(new SetSampleRateCmd(scopeCommunication, t1));
+                });
 
-        List<OscilloscopeVoltRanges> voltRangesList = new ArrayList<>(Arrays.asList(scopeCommunication.getVoltageRanges()));
-        voltagerangebox.setItems(FXCollections.observableList(voltRangesList));
+        voltagerangebox.setItems(FXCollections.observableList(Arrays.asList(scopeCommunication.getVoltageRanges())));
         voltagerangebox.getSelectionModel().selectedItemProperty().addListener(((observableValue, oscilloscopeVoltRanges, t1) -> {
-            scopeCommunication.stopCapture();
-            scopeCommunication.setVoltageRange(oscilloscopeChannels.get(0), observableValue.getValue());
-            scopeCommunication.setVoltageRange(oscilloscopeChannels.get(1), observableValue.getValue());
-            scopeCommunication.startCapture();
+            CommandDispatcher.getInstance().submitCommand(new SetVoltageRangeCmd(scopeCommunication, oscilloscopeChannels.get(0), t1));
+            CommandDispatcher.getInstance().submitCommand(new SetVoltageRangeCmd(scopeCommunication, oscilloscopeChannels.get(1), t1));
         }));
     }
 }
